@@ -21,15 +21,15 @@
 #' # negative log likelihood
 #' ExampleObjFun=function(x,data,param_names){
 #'   out=0
-#'   
+#' 
 #'   names(x) <- param_names
-#'   
+#' 
 #'   # log likelihoods
 #'   out=out+sum(dnorm(data[,1],x["mu_1"],sd=.1,log=TRUE))
 #'   out=out+sum(dnorm(data[,2],x["mu_2"],sd=.1,log=TRUE))
 #'   out=out+sum(dnorm(data[,3],x["mu_3"],sd=.1,log=TRUE))
 #'   out=out+sum(dnorm(data[,4],x["mu_4"],sd=.1,log=TRUE))
-#'   
+#' 
 #'   return(out*-1)
 #' }
 #' 
@@ -56,7 +56,7 @@
 #' 
 #' #analytic solution
 #' apply(dataExample, 2, mean)
-#' 
+
 
 optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   
@@ -118,7 +118,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                                    type = control_params$parallel_type)
   }
   
-  print("running SQE DE...")
+  print("running SQG-DE...")
   
   particlesIdx=1
   for(iter in 1:control_params$n_iter){

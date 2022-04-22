@@ -37,7 +37,7 @@ GetAlgoParams(
 
 \item{n_cores_use}{An integer specifying the number of cores used when using parallelization.}
 
-\item{step_size}{A positive scalar, jump size or "F" in the DE crossover step. The default value is 2.38/sqrt(2*n_params).}
+\item{step_size}{A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).}
 
 \item{jitter_size}{A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value.}
 

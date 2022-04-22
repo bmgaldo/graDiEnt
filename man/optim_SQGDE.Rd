@@ -7,7 +7,7 @@
 optim_SQGDE(ObjFun, control_params = GetAlgoParams(), ...)
 }
 \arguments{
-\item{ObjFun}{A scalar function to minimize whose first arguement is an n_params-dimensional vector.}
+\item{ObjFun}{A scalar-returning function to minimize whose first arguement is a real-valued n_params-dimensional vector.}
 
 \item{control_params}{control parameters for SQG-DE algo. see \code{\link{GetAlgoParams}} function documentation for more details. The only arguement you NEED to pass here is n_params.}
 
@@ -33,15 +33,15 @@ param_names_example=c("mu_1","mu_2","mu_3","mu_4")
 # negative log likelihood
 ExampleObjFun=function(x,data,param_names){
   out=0
-  
+
   names(x) <- param_names
-  
+
   # log likelihoods
   out=out+sum(dnorm(data[,1],x["mu_1"],sd=.1,log=TRUE))
   out=out+sum(dnorm(data[,2],x["mu_2"],sd=.1,log=TRUE))
   out=out+sum(dnorm(data[,3],x["mu_3"],sd=.1,log=TRUE))
   out=out+sum(dnorm(data[,4],x["mu_4"],sd=.1,log=TRUE))
-  
+
   return(out*-1)
 }
 
@@ -68,5 +68,4 @@ out$solution
 
 #analytic solution
 apply(dataExample, 2, mean)
-
 }
