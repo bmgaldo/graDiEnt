@@ -20,7 +20,7 @@ devtools::load_all(quiet=TRUE)
 <!-- badges: start -->
 <!-- badges: end -->
 
-This package makes accessible the the Stochastic Quasi-Gradient Differential Evolution Optimization algorithm first published by Sala, Baldanzini, and Pierini (2018). This optimization algorithm fuses the robustness of the population-based global optimization algorithm "Differential Evolution" with the efficiency of gradient-based optimization. The derivative-free algorithm uses population members to build stochastic gradient estimates, without any additional objective function evaluations. Sala, Baldanzini, and Pierini argue this algorithm is useful for 'difficult optimization problems under a tight function evaluation budget.'
+This package makes accessible the the Stochastic Quasi-Gradient Differential Evolution Optimization algorithm first published by Sala, Baldanzini, and Pierini (2018). This optimization algorithm fuses the robustness of the population-based global optimization algorithm "Differential Evolution" with the efficiency of gradient-based optimization. The derivative-free algorithm uses population members to build stochastic gradient estimates, without any additional objective function evaluations. Sala, Baldanzini, and Pierini argue this algorithm is useful for 'difficult optimization problems under a tight function evaluation budget.' This package can run SQG-DE in parallel and sequentially.
 
 
 ## Installation

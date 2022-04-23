@@ -16,8 +16,8 @@ optimization. The derivative-free algorithm uses population members to
 build stochastic gradient estimates, without any additional objective
 function evaluations. Sala, Baldanzini, and Pierini argue this algorithm
 is useful for ‘difficult optimization problems under a tight function
-evaluation
-budget.’
+evaluation budget.’ This package can run SQG-DE in parallel and
+sequentially.
 
 ## Installation
 
