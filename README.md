@@ -38,17 +38,18 @@ devtools::install_github("bmgaldo/graDiEnt")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic application of the package to a toy optimization
+problem.
 
 ``` r
 library(graDiEnt)
-
+set.seed(123)
 ##############
 # Maximum Likelihood Example
 ##############
 
 # simulate from model
-dataExample=matrix(rnorm(1000,c(-1,1,0,1),c(.1,.1,.1,.1)),ncol=4,byrow = TRUE)
+dataExample=matrix(rnorm(100,c(-1,1,0,1),c(1,1,1,1)),ncol=4,byrow = TRUE)
 
 # list parameter names
 param_names_example=c("mu_1","mu_2","mu_3","mu_4")
@@ -60,10 +61,10 @@ ExampleObjFun=function(x,data,param_names){
   names(x) <- param_names
 
   # log likelihoods
-  out=out+sum(dnorm(data[,1],x["mu_1"],sd=.1,log=TRUE))
-  out=out+sum(dnorm(data[,2],x["mu_2"],sd=.1,log=TRUE))
-  out=out+sum(dnorm(data[,3],x["mu_3"],sd=.1,log=TRUE))
-  out=out+sum(dnorm(data[,4],x["mu_4"],sd=.1,log=TRUE))
+  out=out+sum(dnorm(data[,1],x["mu_1"],sd=1,log=TRUE))
+  out=out+sum(dnorm(data[,2],x["mu_2"],sd=1,log=TRUE))
+  out=out+sum(dnorm(data[,3],x["mu_3"],sd=1,log=TRUE))
+  out=out+sum(dnorm(data[,4],x["mu_4"],sd=1,log=TRUE))
 
   return(out*-1)
 }
@@ -72,9 +73,9 @@ ExampleObjFun=function(x,data,param_names){
 # run optimization
 out <- optim_SQGDE(ObjFun = ExampleObjFun,
                    control_params = GetAlgoParams(n_params=length(param_names_example),
-                                             n_iter=200,
-                                              n_particles=12,
-                                              n_diff=2,
+                                             n_iter = 200,
+                                              n_particles = 12,
+                                              n_diff = 2,
                                               return_trace = TRUE),
                    data = dataExample,
                    param_names = param_names_example)
@@ -94,15 +95,15 @@ out <- optim_SQGDE(ObjFun = ExampleObjFun,
 #> [1] "population initialization complete  :)"
 #> [1] "running SQG-DE..."
 #> [1] "iter 100/200"
-#> [1] "iter 200/200"
+#> [1] "Convergence criterion met. Stopping optimization early"
 #> [1] "run complete!"
 
 # plot particle trajectory
 par(mfrow=c(2,2))
-matplot(out$particles_trace[,,1],type='l')
-matplot(out$particles_trace[,,2],type='l')
-matplot(out$particles_trace[,,3],type='l')
-matplot(out$particles_trace[,,4],type='l')
+matplot(out$particles_trace[,,1],type='l',ylab="mu_1",xlab="iteration")
+matplot(out$particles_trace[,,2],type='l',ylab="mu_2",xlab="iteration")
+matplot(out$particles_trace[,,3],type='l',ylab="mu_3",xlab="iteration")
+matplot(out$particles_trace[,,4],type='l',ylab="mu_4",xlab="iteration")
 ```
 
 <img src="man/figures/README-example-1.png" width="100%" />
@@ -111,9 +112,9 @@ matplot(out$particles_trace[,,4],type='l')
 
 #SQG DE solution
 out$solution
-#> [1] -1.009956878  1.002347824  0.009341201  0.989630743
+#> [1] -0.9623938  1.1032798  0.1835086  1.0376028
 
 #analytic solution
 apply(dataExample, 2, mean)
-#> [1] -1.009956678  1.002347746  0.009341098  0.989630773
+#> [1] -0.9625315  1.1031771  0.1835243  1.0374537
 ```

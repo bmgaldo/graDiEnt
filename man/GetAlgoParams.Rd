@@ -19,7 +19,11 @@ GetAlgoParams(
   return_trace = FALSE,
   thin = 1,
   purify = Inf,
-  adapt_scheme = NULL
+  adapt_scheme = NULL,
+  give_up_init = 100,
+  stop_check = 10,
+  stop_tol = 1e-04,
+  converge_crit = "stdev"
 )
 }
 \arguments{
@@ -31,9 +35,9 @@ GetAlgoParams(
 
 \item{n_iter}{The number of iterations to run the algorithm, 1000 is default.}
 
-\item{init_sd}{A positive scalar or n_params-dimensional numeric vector, determines the standard deviation of the Gaussian initialization distribution}
+\item{init_sd}{A positive scalar or n_params-dimensional numeric vector, determines the standard deviation of the Gaussian initialization distribution.}
 
-\item{init_center}{A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution}
+\item{init_center}{A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution.}
 
 \item{n_cores_use}{An integer specifying the number of cores used when using parallelization.}
 
@@ -52,9 +56,17 @@ GetAlgoParams(
 \item{purify}{A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisey. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.}
 
 \item{adapt_scheme}{A string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is default value.}
+
+\item{give_up_init}{An integer for how many failed initialization attempts before stopping the optimization routine. 100 is the default value.}
+
+\item{stop_check}{An integer for how often to check covergence criterion. Default is 10 iterations.}
+
+\item{stop_tol}{convergence metric must be less than value to be labeled as converged.}
+
+\item{converge_crit}{A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.}
 }
 \value{
-list of control parameters for the optim_SQGDE function
+A list of control parameters for the optim_SQGDE function.
 }
 \description{
 Get control parameters for optim_SQGDE function.

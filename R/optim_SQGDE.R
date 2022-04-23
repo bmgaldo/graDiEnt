@@ -3,7 +3,7 @@
 #' @description  Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maxmize a function f(x), simply pass g(x)=-f(x) to objFun argument.  
 #' @param ObjFun A scalar-returning function to minimize whose first arguement is a real-valued n_params-dimensional vector. 
 #' @param control_params control parameters for SQG-DE algo. see \code{\link{GetAlgoParams}} function documentation for more details. The only arguement you NEED to pass here is n_params.
-#' @param ... additional arguments to pass ObjFun
+#' @param ... additional arguments to pass ObjFun.
 #' @return list containing solution and it's corresponding weight (i.e. f(solution)).
 #' @export
 #' @md
@@ -13,7 +13,7 @@
 #' ##############
 #' 
 #' # simulate from model
-#' dataExample=matrix(rnorm(1000,c(-1,1,0,1),c(.1,.1,.1,.1)),ncol=4,byrow = TRUE)
+#' dataExample=matrix(rnorm(1000,c(-1,1,0,1),c(1,1,1,1)),ncol=4,byrow = TRUE)
 #' 
 #' # list parameter names
 #' param_names_example=c("mu_1","mu_2","mu_3","mu_4")
@@ -25,10 +25,10 @@
 #'   names(x) <- param_names
 #' 
 #'   # log likelihoods
-#'   out=out+sum(dnorm(data[,1],x["mu_1"],sd=.1,log=TRUE))
-#'   out=out+sum(dnorm(data[,2],x["mu_2"],sd=.1,log=TRUE))
-#'   out=out+sum(dnorm(data[,3],x["mu_3"],sd=.1,log=TRUE))
-#'   out=out+sum(dnorm(data[,4],x["mu_4"],sd=.1,log=TRUE))
+#'   out=out+sum(dnorm(data[,1],x["mu_1"],sd=1,log=TRUE))
+#'   out=out+sum(dnorm(data[,2],x["mu_2"],sd=1,log=TRUE))
+#'   out=out+sum(dnorm(data[,3],x["mu_3"],sd=1,log=TRUE))
+#'   out=out+sum(dnorm(data[,4],x["mu_4"],sd=1,log=TRUE))
 #' 
 #'   return(out*-1)
 #' }
@@ -36,10 +36,10 @@
 #' ########################
 #' # run optimization
 #' out <- optim_SQGDE(ObjFun = ExampleObjFun,
-#'                    control_params = GetAlgoParams(n_params=length(param_names_example),
-#'                                              n_iter=200,
-#'                                               n_particles=12,
-#'                                               n_diff=2,
+#'                    control_params = GetAlgoParams(n_params = length(param_names_example),
+#'                                              n_iter = 250,
+#'                                               n_particles = 12,
+#'                                               n_diff = 2,
 #'                                               return_trace = TRUE),
 #'                    data = dataExample,
 #'                    param_names = param_names_example)
@@ -82,10 +82,10 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
       
       # catcha NA's and Infinity and assign worst possible value
       if(!is.finite(weights[1, pmem_index])){
-       weights[1, pmem_index] <- Inf
+        weights[1, pmem_index] = Inf
       }
       count = count + 1
-      if(count>100){
+      if(count>control_params$give_up_init){
         stop('population initialization failed.
         inspect objective function or change init_center/init_sd to sample more
              likely parameter values')
@@ -120,14 +120,17 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   
   print("running SQG-DE...")
   
-  particlesIdx=1
+  
+  
+  iter_idx=1
+  converge_test_passed=FALSE 
   for(iter in 1:control_params$n_iter){
     
     if(control_params$parallel_type=='none'){
       # adapt particles using SQG DE sequentially
       temp=matrix(unlist(lapply(1:control_params$n_particles, AdaptSQGDE,
-                                current_params = particles[particlesIdx, , ],   # current parameter values (numeric matrix)
-                                current_weight = weights[particlesIdx, ],  # corresponding weights (numeric vector)
+                                current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
+                                current_weight = weights[iter_idx, ],  # corresponding weights (numeric vector)
                                 objFun = ObjFun,  # objective function (returns scalar)
                                 step_size = control_params$step_size,
                                 jitter_size = control_params$jitter_size,
@@ -139,8 +142,8 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
     } else {
       # adapt particles using SQG DE in parallel
       temp=matrix(unlist(parallel::parLapply(cl_use, 1:control_params$n_particles, AdaptSQGDE,
-                                             current_params = particles[particlesIdx, , ],   # current parameter values (numeric matrix)
-                                             current_weight = weights[particlesIdx, ],  # corresponding weight (numeric vector)
+                                             current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
+                                             current_weight = weights[iter_idx, ],  # corresponding weight (numeric vector)
                                              objFun = ObjFun,  # function we want to minimize (returns scalar)
                                              step_size = control_params$step_size,
                                              jitter_size = control_params$jitter_size,
@@ -152,12 +155,12 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
       
     }
     # update particle after adaption
-    weights[particlesIdx, ] = temp[, 1]
-    particles[particlesIdx, , ] = temp[, 2:(control_params$n_params+1)]
+    weights[iter_idx, ] = temp[, 1]
+    particles[iter_idx, , ] = temp[, 2:(control_params$n_params+1)]
     # carry over particles for next iteration
     if(iter<control_params$n_iter){
-      weights[particlesIdx+1, ] = temp[, 1]
-      particles[particlesIdx+1, , ] = temp[, 2:(control_params$n_params+1)]
+      weights[iter_idx+1, ] = temp[, 1]
+      particles[iter_idx+1, , ] = temp[, 2:(control_params$n_params+1)]
     }
     
     #####################
@@ -167,16 +170,16 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
       
       if(control_params$parallel_type=='none'){
         temp=matrix(unlist(lapply(1:control_params$n_particles, Purify,
-                                  current_params = particles[particlesIdx, , ],   # current parameter values (numeric  matrix)
-                                  current_weight = weights[particlesIdx, ],  # corresponding weights (numeric vector)
+                                  current_params = particles[iter_idx, , ],   # current parameter values (numeric  matrix)
+                                  current_weight = weights[iter_idx, ],  # corresponding weights (numeric vector)
                                   objFun = ObjFun,  # objective function (returns scalar)
                                   ...)),
                     nrow = control_params$n_particles,
                     ncol = control_params$n_params+1, byrow=TRUE)
       } else {
         temp=matrix(unlist(parallel::parLapply(cl_use, 1:control_params$n_particles, Purify,
-                                               current_params = particles[particlesIdx, , ],   # current parameter values (numeric matrix)
-                                               current_weight = weights[particlesIdx, ],  # corresponding weights (numeric vector)
+                                               current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
+                                               current_weight = weights[iter_idx, ],  # corresponding weights (numeric vector)
                                                objFun = ObjFun,  # objective function (returns scalar)
                                                ...)),
                     control_params$n_particles,
@@ -184,22 +187,43 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
       }
       
       # update particle after adaption
-      weights[particlesIdx, ] = temp[, 1]
-      particles[particlesIdx, , ] = temp[, 2:(control_params$n_params+1)]
+      weights[iter_idx, ] = temp[, 1]
+      particles[iter_idx, , ] = temp[, 2:(control_params$n_params+1)]
       # carry over particles for next iteration
       if(iter<control_params$n_iter){
-        weights[particlesIdx+1, ] = temp[, 1]
-        particles[particlesIdx+1, , ] = temp[, 2:(control_params$n_params+1)]
+        weights[iter_idx+1, ] = temp[, 1]
+        particles[iter_idx+1, , ] = temp[, 2:(control_params$n_params+1)]
       }
     }
-    if(iter%%10==0){
-      weight_var=stats::var(weights[particlesIdx:(particlesIdx-9), ])
+    
+    if(iter %% control_params$stop_check==0){
+      # assign convergence method
+      
+      if(control_params$converge_crit=='percent'){
+        percent_improve=(1-stats::median(weights[iter_idx, ])/stats::median(weights[iter_idx-control_params$stop_check+1, ]))*100
+        if(percent_improve<(control_params$stop_tol)){
+          print("Convergence criterion met. Stopping optimization early")
+          converge_test_passed=TRUE
+          break
+        }
+      }
+      if(control_params$converge_crit=='stdev'){
+        weight_sd=stats::sd(weights[iter_idx:(iter_idx-control_params$stop_check+1), ])
+        if(weight_sd<(control_params$stop_tol)){
+          print("Convergence criterion met. Stopping optimization early")
+          converge_test_passed=TRUE
+          break
+        }
+      }
     }
+    
+    
+    
     if(iter%%100==0){
       print(paste0('iter ', iter, '/', control_params$n_iter))
     }
-    if(iter%%control_params$thin==0){
-      particlesIdx = particlesIdx+1
+    if(iter%%control_params$thin==0 & !(iter==control_params$n_iter)){
+      iter_idx = iter_idx+1
     }
     
   }
@@ -208,18 +232,18 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   if(!control_params$parallel_type=='none'){
     parallel::stopCluster(cl = cl_use)
   }
-  minIdx = which.min(weights[control_params$n_iters_per_particle, ])
-  minEst = particles[control_params$n_iters_per_particle, minIdx, ]
+  minIdx = which.min(weights[iter_idx, ])
+  minEst = particles[iter_idx, minIdx, ]
   
   if(control_params$return_trace==TRUE){
     return(list('solution' = minEst,
-                'weight' = weights[control_params$n_iters_per_particle, minIdx],
+                'weight' = weights[iter_idx, minIdx],
                 'particles_trace' = particles,
                 'weights_trace' = weights,
-                'weight_var' = weight_var))
+                'converged' = converge_test_passed))
   } else {
     return(list('solution' = minEst,
-                'weight' = weights[control_params$n_iters_per_particle, minIdx]),
-                'weight_var' = weight_var)
+                'weight' = weights[iter_idx, minIdx],
+                'converged' = converge_test_passed))
   }
 }
