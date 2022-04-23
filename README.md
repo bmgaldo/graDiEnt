@@ -98,18 +98,6 @@ out <- optim_SQGDE(ObjFun = ExampleObjFun,
 #> [1] "Convergence criterion met. Stopping optimization early"
 #> [1] "run complete!"
 
-# plot particle trajectory
-par(mfrow=c(2,2))
-matplot(out$particles_trace[,,1],type='l',ylab="mu_1",xlab="iteration")
-matplot(out$particles_trace[,,2],type='l',ylab="mu_2",xlab="iteration")
-matplot(out$particles_trace[,,3],type='l',ylab="mu_3",xlab="iteration")
-matplot(out$particles_trace[,,4],type='l',ylab="mu_4",xlab="iteration")
-```
-
-<img src="man/figures/README-example-1.png" width="100%" />
-
-``` r
-
 #SQG DE solution
 out$solution
 #> [1] -0.9623938  1.1032798  0.1835086  1.0376028
@@ -192,21 +180,10 @@ out <- optim_SQGDE(ObjFun = ExampleObjFun,
 #> [1] "Convergence criterion met. Stopping optimization early"
 #> [1] "run complete!"
 
-# plot particle trajectory
-par(mfrow=c(2,2))
-matplot(out$particles_trace[,,1],type='l',ylab="mu_1",xlab="iteration")
-matplot(out$particles_trace[,,2],type='l',ylab="mu_2",xlab="iteration")
-matplot(out$particles_trace[,,3],type='l',ylab="mu_3",xlab="iteration")
-matplot(out$particles_trace[,,4],type='l',ylab="mu_4",xlab="iteration")
-```
-
-<img src="man/figures/README-example 2-1.png" width="100%" />
-
-``` r
 
 #SQG DE solution
 out$solution
-#> [1] -0.9624737  1.1031963  0.1836107  1.0372681
+#> [1] -0.9625572  1.1032270  0.1835328  1.0373868
 
 #analytic solution
 apply(dataExample, 2, mean)

@@ -80,13 +80,6 @@ out <- optim_SQGDE(ObjFun = ExampleObjFun,
                    data = dataExample,
                    param_names = param_names_example)
 
-# plot particle trajectory
-par(mfrow=c(2,2))
-matplot(out$particles_trace[,,1],type='l',ylab="mu_1",xlab="iteration")
-matplot(out$particles_trace[,,2],type='l',ylab="mu_2",xlab="iteration")
-matplot(out$particles_trace[,,3],type='l',ylab="mu_3",xlab="iteration")
-matplot(out$particles_trace[,,4],type='l',ylab="mu_4",xlab="iteration")
-
 #SQG DE solution
 out$solution
 
@@ -137,12 +130,6 @@ out <- optim_SQGDE(ObjFun = ExampleObjFun,
                    data = dataExample,
                    param_names = param_names_example)
 
-# plot particle trajectory
-par(mfrow=c(2,2))
-matplot(out$particles_trace[,,1],type='l',ylab="mu_1",xlab="iteration")
-matplot(out$particles_trace[,,2],type='l',ylab="mu_2",xlab="iteration")
-matplot(out$particles_trace[,,3],type='l',ylab="mu_3",xlab="iteration")
-matplot(out$particles_trace[,,4],type='l',ylab="mu_4",xlab="iteration")
 
 #SQG DE solution
 out$solution

@@ -47,7 +47,7 @@ GetAlgoParams(
 
 \item{crossover_rate}{A numeric scalar on the interval (0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution.}
 
-\item{parallel_type}{A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value.}
+\item{parallel_type}{A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.}
 
 \item{return_trace}{A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.}
 
@@ -61,7 +61,7 @@ GetAlgoParams(
 
 \item{stop_check}{An integer for how often to check covergence criterion. The default is 10 iterations.}
 
-\item{stop_tol}{convergence metric must be less than value to be labeled as converged. The default is 1e-4.}
+\item{stop_tol}{A convergence metric must be less than value to be labeled as converged. The default is 1e-4.}
 
 \item{converge_crit}{A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.}
 }
