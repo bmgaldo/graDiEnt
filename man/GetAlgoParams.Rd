@@ -43,7 +43,7 @@ GetAlgoParams(
 
 \item{step_size}{A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).}
 
-\item{jitter_size}{A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value.}
+\item{jitter_size}{A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.}
 
 \item{crossover_rate}{A numeric scalar on the interval (0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution.}
 
@@ -51,17 +51,17 @@ GetAlgoParams(
 
 \item{return_trace}{A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.}
 
-\item{thin}{A positive integer. Only every 'thin'-th iteration will be stored in memory. The Default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.}
+\item{thin}{A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.}
 
 \item{purify}{A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisey. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.}
 
-\item{adapt_scheme}{A string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is default value.}
+\item{adapt_scheme}{A string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is the default value.}
 
 \item{give_up_init}{An integer for how many failed initialization attempts before stopping the optimization routine. 100 is the default value.}
 
-\item{stop_check}{An integer for how often to check covergence criterion. Default is 10 iterations.}
+\item{stop_check}{An integer for how often to check covergence criterion. The default is 10 iterations.}
 
-\item{stop_tol}{convergence metric must be less than value to be labeled as converged.}
+\item{stop_tol}{convergence metric must be less than value to be labeled as converged. The default is 1e-4.}
 
 \item{converge_crit}{A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.}
 }
