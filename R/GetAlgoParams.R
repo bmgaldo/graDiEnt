@@ -10,14 +10,14 @@
 #' @param n_cores_use An integer specifying the number of cores used when using parallelization.
 #' @param step_size A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).
 #' @param jitter_size A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.
-#' @param parallel_type A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value.
+#' @param parallel_type A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.
 #' @param return_trace A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights. 
 #' @param thin A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.
 #' @param purify A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisey. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.
 #' @param adapt_scheme A string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is the default value.
 #' @param give_up_init An integer for how many failed initialization attempts before stopping the optimization routine. 100 is the default value.
 #' @param stop_check An integer for how often to check covergence criterion. The default is 10 iterations.
-#' @param stop_tol convergence metric must be less than value to be labeled as converged. The default is 1e-4.
+#' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
@@ -238,7 +238,7 @@ GetAlgoParams = function(n_params,
   }
   
   ##################
-  # stop check
+  # stop_check
   if(any(is.null(stop_check)) | any(is.na(stop_check))){
     stop_check = 10
   } 
@@ -250,7 +250,7 @@ GetAlgoParams = function(n_params,
   
   
   ##################
-  # stop tol
+  # stop_tol
   if(any(is.null(stop_tol)) | any(is.na(stop_tol))){
     stop_tol = 1e-4
   } 
@@ -276,9 +276,9 @@ GetAlgoParams = function(n_params,
              'n_diff' = n_diff,
              'adapt_scheme' = adapt_scheme,
              'give_up_init'= give_up_init,
-             'stop_tol'=stop_tol,
-             'stop_check'=stop_check,
-             'converge_crit'=converge_crit)
+             'stop_tol' = stop_tol,
+             'stop_check' = stop_check,
+             'converge_crit' = converge_crit)
   
   return(out)
 }

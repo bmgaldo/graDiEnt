@@ -141,7 +141,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                   control_params$n_params+1, byrow=TRUE)
     } else {
       # adapt particles using SQG DE in parallel
-      temp=matrix(unlist(parallel::parLapply(cl_use, 1:control_params$n_particles, AdaptSQGDE,
+      temp=matrix(unlist(parallel::parLapplyLB(cl_use, 1:control_params$n_particles, AdaptSQGDE,
                                              current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
                                              current_weight = weights[iter_idx, ],  # corresponding weight (numeric vector)
                                              objFun = ObjFun,  # function we want to minimize (returns scalar)
@@ -149,7 +149,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                                              jitter_size = control_params$jitter_size,
                                              n_particles = control_params$n_particles,
                                              crossover_rate = control_params$crossover_rate,
-                                             n_diff = control_params$n_diff...)),
+                                             n_diff = control_params$n_diff, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)
       
@@ -177,7 +177,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                     nrow = control_params$n_particles,
                     ncol = control_params$n_params+1, byrow=TRUE)
       } else {
-        temp=matrix(unlist(parallel::parLapply(cl_use, 1:control_params$n_particles, Purify,
+        temp=matrix(unlist(parallel::parLapplyLB(cl_use, 1:control_params$n_particles, Purify,
                                                current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
                                                current_weight = weights[iter_idx, ],  # corresponding weights (numeric vector)
                                                objFun = ObjFun,  # objective function (returns scalar)

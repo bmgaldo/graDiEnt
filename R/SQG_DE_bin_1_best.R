@@ -15,10 +15,10 @@ SQG_DE_bin_1_best=function(pmem_index,
                            current_params,
                            current_weight,
                            objFun,
-                           step_size=.8,
-                           jitter_size=1e-6,
-                           n_particles,
-                           crossover_rate=1,
+                           step_size = .8,
+                           jitter_size = 1e-6,
+                           n_particles, 
+                           crossover_rate = 1,
                            n_diff, ... ){
 
   # get statistics about particle
@@ -39,31 +39,31 @@ SQG_DE_bin_1_best=function(pmem_index,
   }
 
   # indices of parameters to be updated
-  param_indices=seq(1,len_param_use,by=1)[as.logical(param_idices_bool)]
+  param_indices = seq(1,len_param_use,by=1)[as.logical(param_idices_bool)]
 
 
   # get rid of this for loop later
-  vec_diff_sum=grad_approx=numeric(length(param_indices))
+  vec_diff_sum = grad_approx = numeric(length(param_indices))
   for(d in 1:n_diff){
     # difference in vector pairs
-    vec_diff_temp=(current_params[parent_indices[d],param_indices] -
+    vec_diff_temp = (current_params[parent_indices[d],param_indices] -
                      current_params[parent_indices[d+n_diff],param_indices])
 
     # sum up all vector differences for normalization step
-    vec_diff_sum=vec_diff_sum+vec_diff_temp
+    vec_diff_sum = vec_diff_sum + vec_diff_temp
 
     # difference in function values
-    weight_diff_temp=(current_weight[parent_indices[d]] -
+    weight_diff_temp = (current_weight[parent_indices[d]] -
                         current_weight[parent_indices[d+n_diff]])
 
     # sum the approximate gradient vectors
-    grad_approx=grad_approx+vec_diff_temp*(weight_diff_temp/sqrt(sum(vec_diff_temp^2)))
+    grad_approx = grad_approx + vec_diff_temp*(weight_diff_temp/sqrt(sum(vec_diff_temp^2)))
   }
 
   # calculate normalization factor for algorithm self scaling
-  psi_num=sqrt(sum(vec_diff_sum^2))*(1/n_diff)
-  psi_den=sqrt(sum(grad_approx^2))
-  psi=psi_num/psi_den
+  psi_num = sqrt(sum(vec_diff_sum^2))*(1/n_diff)
+  psi_den = sqrt(sum(grad_approx^2))
+  psi = psi_num/psi_den
 
 
   if(all(is.finite(grad_approx)) & is.finite(psi) & (psi>0)){
