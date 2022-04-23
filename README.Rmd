@@ -37,7 +37,7 @@ This package makes accessible the the Stochastic Quasi-Gradient Differential Evo
 # install.packages("devtools")
 devtools::install_github("bmgaldo/graDiEnt")
 ```
-## Example
+## Example (serial)
 
 This is a basic application of the package to a toy optimization problem.
 
@@ -88,7 +88,7 @@ apply(dataExample, 2, mean)
 
 ```
 
-# Example (parallel)
+## Example (parallel)
 ```{r example 2}
 library(graDiEnt)
 set.seed(123)
@@ -122,7 +122,7 @@ ExampleObjFun=function(x,data,param_names){
 out <- optim_SQGDE(ObjFun = ExampleObjFun,
                    control_params = GetAlgoParams(n_params=length(param_names_example),
                                                   n_iter = 200,
-                                                  n_particles = 24,
+                                                  n_particles = 12,
                                                   n_diff = 2,
                                                   return_trace = TRUE,
                                                   n_cores_use = 4,

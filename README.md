@@ -36,7 +36,7 @@ sequentially.
 devtools::install_github("bmgaldo/graDiEnt")
 ```
 
-## Example
+## Example (serial)
 
 This is a basic application of the package to a toy optimization
 problem.
@@ -107,7 +107,7 @@ apply(dataExample, 2, mean)
 #> [1] -0.9625315  1.1031771  0.1835243  1.0374537
 ```
 
-# Example (parallel)
+## Example (parallel)
 
 ``` r
 library(graDiEnt)
@@ -142,7 +142,7 @@ ExampleObjFun=function(x,data,param_names){
 out <- optim_SQGDE(ObjFun = ExampleObjFun,
                    control_params = GetAlgoParams(n_params=length(param_names_example),
                                                   n_iter = 200,
-                                                  n_particles = 24,
+                                                  n_particles = 12,
                                                   n_diff = 2,
                                                   return_trace = TRUE,
                                                   n_cores_use = 4,
@@ -150,40 +150,29 @@ out <- optim_SQGDE(ObjFun = ExampleObjFun,
                    data = dataExample,
                    param_names = param_names_example)
 #> [1] "initalizing population..."
-#> [1] "1 / 24"
-#> [1] "2 / 24"
-#> [1] "3 / 24"
-#> [1] "4 / 24"
-#> [1] "5 / 24"
-#> [1] "6 / 24"
-#> [1] "7 / 24"
-#> [1] "8 / 24"
-#> [1] "9 / 24"
-#> [1] "10 / 24"
-#> [1] "11 / 24"
-#> [1] "12 / 24"
-#> [1] "13 / 24"
-#> [1] "14 / 24"
-#> [1] "15 / 24"
-#> [1] "16 / 24"
-#> [1] "17 / 24"
-#> [1] "18 / 24"
-#> [1] "19 / 24"
-#> [1] "20 / 24"
-#> [1] "21 / 24"
-#> [1] "22 / 24"
-#> [1] "23 / 24"
-#> [1] "24 / 24"
+#> [1] "1 / 12"
+#> [1] "2 / 12"
+#> [1] "3 / 12"
+#> [1] "4 / 12"
+#> [1] "5 / 12"
+#> [1] "6 / 12"
+#> [1] "7 / 12"
+#> [1] "8 / 12"
+#> [1] "9 / 12"
+#> [1] "10 / 12"
+#> [1] "11 / 12"
+#> [1] "12 / 12"
 #> [1] "population initialization complete  :)"
 #> [1] "initalizing FORK cluser with 4 cores"
 #> [1] "running SQG-DE..."
+#> [1] "iter 100/200"
 #> [1] "Convergence criterion met. Stopping optimization early"
 #> [1] "run complete!"
 
 
 #SQG DE solution
 out$solution
-#> [1] -0.9625572  1.1032270  0.1835328  1.0373868
+#> [1] -0.9623173  1.1034912  0.1838107  1.0369257
 
 #analytic solution
 apply(dataExample, 2, mean)
