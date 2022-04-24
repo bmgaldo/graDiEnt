@@ -23,7 +23,7 @@ SQG_DE_bin_1_best=function(pmem_index,
 
   # get statistics about particle
   weight_use = current_weight[pmem_index]
-  best_pmem_index = which.max(current_weight)
+  best_pmem_index = which.min(current_weight)
   params_use = current_params[pmem_index,]
   len_param_use = length(params_use)
   
