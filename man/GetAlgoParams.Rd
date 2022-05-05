@@ -27,25 +27,25 @@ GetAlgoParams(
 )
 }
 \arguments{
-\item{n_params}{The number of parameters estimated, this integer value NEEDS to be specified.}
+\item{n_params}{The number of parameters estimated/optimized, this integer value NEEDS to be specified.}
 
-\item{n_particles}{The number of particles (population size), 3*n_pars is the default value.}
+\item{n_particles}{The number of particles (population size), 3*n_params is the default value.}
 
 \item{n_diff}{The number of mutually exclusive vector pairs to stochastically approximate the gradient.}
 
 \item{n_iter}{The number of iterations to run the algorithm, 1000 is default.}
 
-\item{init_sd}{A positive scalar or n_params-dimensional numeric vector, determines the standard deviation of the Gaussian initialization distribution.}
+\item{init_sd}{A positive scalar or n_params-dimensional numeric vector, determines the standard deviation of the Gaussian initialization distribution. The default value is 0.01.}
 
-\item{init_center}{A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution.}
+\item{init_center}{A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution. The default value is 0.}
 
-\item{n_cores_use}{An integer specifying the number of cores used when using parallelization.}
+\item{n_cores_use}{An integer specifying the number of cores used when using parallelization. The default value is 1.}
 
 \item{step_size}{A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).}
 
 \item{jitter_size}{A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.}
 
-\item{crossover_rate}{A numeric scalar on the interval (0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution.}
+\item{crossover_rate}{A numeric scalar on the interval (0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution. The default value is 1.}
 
 \item{parallel_type}{A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.}
 
@@ -53,13 +53,13 @@ GetAlgoParams(
 
 \item{thin}{A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.}
 
-\item{purify}{A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisey. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.}
+\item{purify}{A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisy. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.}
 
 \item{adapt_scheme}{A string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is the default value.}
 
 \item{give_up_init}{An integer for how many failed initialization attempts before stopping the optimization routine. 100 is the default value.}
 
-\item{stop_check}{An integer for how often to check covergence criterion. The default is 10 iterations.}
+\item{stop_check}{An integer for how often to check the convergence criterion. The default is 10 iterations.}
 
 \item{stop_tol}{A convergence metric must be less than value to be labeled as converged. The default is 1e-4.}
 

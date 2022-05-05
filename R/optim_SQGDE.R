@@ -1,8 +1,8 @@
 #' optim_SQGDE
 #'
-#' @description  Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maxmize a function f(x), simply pass g(x)=-f(x) to objFun argument.  
-#' @param ObjFun A scalar-returning function to minimize whose first arguement is a real-valued n_params-dimensional vector. 
-#' @param control_params control parameters for SQG-DE algo. see \code{\link{GetAlgoParams}} function documentation for more details. The only arguement you NEED to pass here is n_params.
+#' @description  Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maximize a function f(x), simply pass g(x)=-f(x) to objFun argument.
+#' @param ObjFun A scalar-returning function to minimize whose first argument is a real-valued n_params-dimensional vector.
+#' @param control_params control parameters for SQG-DE algo. see \code{\link{GetAlgoParams}} function documentation for more details. The only argument you NEED to pass here is n_params.
 #' @param ... additional arguments to pass ObjFun.
 #' @return list containing solution and it's corresponding weight (i.e. f(solution)).
 #' @export
@@ -11,28 +11,28 @@
 #' ##############
 #' # Maximum Likelihood Example
 #' ##############
-#' 
+#'
 #' # simulate from model
 #' dataExample=matrix(rnorm(1000,c(-1,1,0,1),c(1,1,1,1)),ncol=4,byrow = TRUE)
-#' 
+#'
 #' # list parameter names
 #' param_names_example=c("mu_1","mu_2","mu_3","mu_4")
-#' 
+#'
 #' # negative log likelihood
 #' ExampleObjFun=function(x,data,param_names){
 #'   out=0
-#' 
+#'
 #'   names(x) <- param_names
-#' 
+#'
 #'   # log likelihoods
 #'   out=out+sum(dnorm(data[,1],x["mu_1"],sd=1,log=TRUE))
 #'   out=out+sum(dnorm(data[,2],x["mu_2"],sd=1,log=TRUE))
 #'   out=out+sum(dnorm(data[,3],x["mu_3"],sd=1,log=TRUE))
 #'   out=out+sum(dnorm(data[,4],x["mu_4"],sd=1,log=TRUE))
-#' 
+#'
 #'   return(out*-1)
 #' }
-#' 
+#'
 #' ########################
 #' # run optimization
 #' out <- optim_SQGDE(ObjFun = ExampleObjFun,
@@ -43,23 +43,23 @@
 #'                                               return_trace = TRUE),
 #'                    data = dataExample,
 #'                    param_names = param_names_example)
-#' 
+#'
 #' # plot particle trajectory
 #' par(mfrow=c(2,2))
 #' matplot(out$particles_trace[,,1],type='l')
 #' matplot(out$particles_trace[,,2],type='l')
 #' matplot(out$particles_trace[,,3],type='l')
 #' matplot(out$particles_trace[,,4],type='l')
-#' 
+#'
 #' #SQG DE solution
 #' out$solution
-#' 
+#'
 #' #analytic solution
 #' apply(dataExample, 2, mean)
 
 
 optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
-  
+
   # create memory structures for storing particle trajectories
   particles = array(NA,
                     dim = c(control_params$n_iters_per_particle,
@@ -68,7 +68,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   weights = matrix(Inf,
                    nrow = control_params$n_iters_per_particle,
                    ncol = control_params$n_particles)
-  
+
   # pop initialization
   print('initalizing population...')
   for(pmem_index in 1:control_params$n_particles){
@@ -77,9 +77,9 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
       particles[1, pmem_index, ] = stats::rnorm(control_params$n_params,
                                                 control_params$init_center,
                                                 control_params$init_sd)
-      
+
       weights[1, pmem_index] = ObjFun(particles[1, pmem_index, ], ...)
-      
+
       # catcha NA's and Infinity and assign worst possible value
       if(!is.finite(weights[1, pmem_index])){
         weights[1, pmem_index] = Inf
@@ -94,7 +94,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
     print(paste0(pmem_index, " / ", control_params$n_particles))
   }
   print('population initialization complete  :)')
-  
+
   # assign adaption scheme
   if(control_params$adapt_scheme=='rand'){
     AdaptSQGDE = SQG_DE_bin_1_rand
@@ -105,27 +105,27 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   if(control_params$adapt_scheme=='current'){
     AdaptSQGDE = SQG_DE_bin_1_curr
   }
-  
+
   # cluster initialization
   if(!control_params$parallel_type=='none'){
-    
+
     print(paste0("initalizing ",
                  control_params$parallel_type, " cluser with ",
                  control_params$n_cores_use, " cores"))
-    
+
     doParallel::registerDoParallel(control_params$n_cores_use)
     cl_use = parallel::makeCluster(control_params$n_cores_use,
                                    type = control_params$parallel_type)
   }
-  
+
   print("running SQG-DE...")
-  
-  
-  
+
+
+
   iter_idx=1
-  converge_test_passed=FALSE 
+  converge_test_passed=FALSE
   for(iter in 1:control_params$n_iter){
-    
+
     if(control_params$parallel_type=='none'){
       # adapt particles using SQG DE sequentially
       temp=matrix(unlist(lapply(1:control_params$n_particles, AdaptSQGDE,
@@ -152,7 +152,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                                              n_diff = control_params$n_diff, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)
-      
+
     }
     # update particle after adaption
     weights[iter_idx, ] = temp[, 1]
@@ -162,12 +162,12 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
       weights[iter_idx+1, ] = temp[, 1]
       particles[iter_idx+1, , ] = temp[, 2:(control_params$n_params+1)]
     }
-    
+
     #####################
     ####### purify
     #####################
     if(iter%%control_params$purify==0){
-      
+
       if(control_params$parallel_type=='none'){
         temp=matrix(unlist(lapply(1:control_params$n_particles, Purify,
                                   current_params = particles[iter_idx, , ],   # current parameter values (numeric  matrix)
@@ -185,7 +185,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                     control_params$n_particles,
                     control_params$n_params+1, byrow=TRUE)
       }
-      
+
       # update particle after adaption
       weights[iter_idx, ] = temp[, 1]
       particles[iter_idx, , ] = temp[, 2:(control_params$n_params+1)]
@@ -195,10 +195,10 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
         particles[iter_idx+1, , ] = temp[, 2:(control_params$n_params+1)]
       }
     }
-    
+
     if(iter %% control_params$stop_check==0){
       # assign convergence method
-      
+
       if(control_params$converge_crit=='percent'){
         percent_improve=(1-stats::median(weights[iter_idx, ])/stats::median(weights[iter_idx-control_params$stop_check+1, ]))*100
         if(percent_improve<(control_params$stop_tol)){
@@ -216,16 +216,16 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
         }
       }
     }
-    
-    
-    
+
+
+
     if(iter%%100==0){
       print(paste0('iter ', iter, '/', control_params$n_iter))
     }
     if(iter%%control_params$thin==0 & !(iter==control_params$n_iter)){
       iter_idx = iter_idx+1
     }
-    
+
   }
   print(paste0('run complete!'))
   # cluster stop
@@ -234,7 +234,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   }
   minIdx = which.min(weights[iter_idx, ])
   minEst = particles[iter_idx, minIdx, ]
-  
+
   if(control_params$return_trace==TRUE){
     return(list('solution' = minEst,
                 'weight' = weights[iter_idx, minIdx],
