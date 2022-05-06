@@ -1,10 +1,5 @@
 # Initial submission
 ## R CMD check results
-
-## platform: x86_64-pc-linux-gnu (64-bit) R version 3.6.3 (2020-02-29)
-There were no ERRORs, WARNINGs, or NOTEs.
-
-## Rhub.io check results
 ### Platform:	Ubuntu Linux 20.04.1 LTS, R-release, GCC
 There were no ERRORs or WARNINGs. There was one note.
 > Possibly misspelled words in DESCRIPTION:
@@ -27,12 +22,7 @@ There were no ERRORs or WARNINGs. There was one note.
   > optim (10:17)
   
   name of a function in base R.
-    
-### Platform:	Windows Server 2022, R-devel, 64 bit
-There were no ERRORs or WARNINGs. There was one note.
-Same as above
 
-    
 ### Platform:	Fedora Linux, R-devel, clang, gfortran
 There were no ERRORs or WARNINGs. There was one note.
 Same as above

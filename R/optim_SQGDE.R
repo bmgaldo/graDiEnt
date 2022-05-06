@@ -1,6 +1,6 @@
 #' optim_SQGDE
 #'
-#' @description  Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maximize a function f(x), simply pass g(x)=-f(x) to objFun argument.
+#' @description  Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maximize a function f(x), simply pass g(x)=-f(x) to ObjFun argument.
 #' @param ObjFun A scalar-returning function to minimize whose first argument is a real-valued n_params-dimensional vector.
 #' @param control_params control parameters for SQG-DE algo. see \code{\link{GetAlgoParams}} function documentation for more details. The only argument you NEED to pass here is n_params.
 #' @param ... additional arguments to pass ObjFun.
@@ -56,7 +56,6 @@
 #'
 #' #analytic solution
 #' apply(dataExample, 2, mean)
-
 
 optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
 

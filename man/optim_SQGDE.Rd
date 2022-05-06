@@ -17,7 +17,7 @@ optim_SQGDE(ObjFun, control_params = GetAlgoParams(), ...)
 list containing solution and it's corresponding weight (i.e. f(solution)).
 }
 \description{
-Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maximize a function f(x), simply pass g(x)=-f(x) to objFun argument.
+Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maximize a function f(x), simply pass g(x)=-f(x) to ObjFun argument.
 }
 \examples{
 ##############
