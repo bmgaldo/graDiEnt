@@ -1,4 +1,10 @@
-# Initial submission
+# Resubmission
+This is a resubmission. In this version I have:
+
+* Replaced all "print()" function calls with "message()"
+
+* Reset user's "par()" after changing them in example code.
+  
 ## R CMD check results
 ### Platform:	Ubuntu Linux 20.04.1 LTS, R-release, GCC
 There were no ERRORs or WARNINGs. There was one note.
