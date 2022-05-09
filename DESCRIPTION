@@ -1,6 +1,6 @@
 Package: graDiEnt
 Title: Stochastic Quasi-Gradient Differential Evolution Optimization
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: 
     person(given = "Brendan Matthew",
            family = "Galdo",
