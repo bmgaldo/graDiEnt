@@ -43,8 +43,9 @@
 #'                                               return_trace = TRUE),
 #'                    data = dataExample,
 #'                    param_names = param_names_example)
-#'
+#' old_par <- par() # save graphic state for user
 #' # plot particle trajectory
+#'
 #' par(mfrow=c(2,2))
 #' matplot(out$particles_trace[,,1],type='l')
 #' matplot(out$particles_trace[,,2],type='l')
@@ -56,6 +57,9 @@
 #'
 #' #analytic solution
 #' apply(dataExample, 2, mean)
+#'
+#' par(old_par) # restore user graphic state
+#'
 
 optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
 
@@ -69,7 +73,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                    ncol = control_params$n_particles)
 
   # pop initialization
-  print('initalizing population...')
+  message('initalizing population...')
   for(pmem_index in 1:control_params$n_particles){
     count = 0 # establish a count variable to avoid infinite run time
     while(weights[1,pmem_index]==Inf) {
@@ -90,9 +94,9 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
              likely parameter values')
       }
     }
-    print(paste0(pmem_index, " / ", control_params$n_particles))
+    message(paste0(pmem_index, " / ", control_params$n_particles))
   }
-  print('population initialization complete  :)')
+  message('population initialization complete  :)')
 
   # assign adaption scheme
   if(control_params$adapt_scheme=='rand'){
@@ -108,7 +112,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   # cluster initialization
   if(!control_params$parallel_type=='none'){
 
-    print(paste0("initalizing ",
+    message(paste0("initalizing ",
                  control_params$parallel_type, " cluser with ",
                  control_params$n_cores_use, " cores"))
 
@@ -117,7 +121,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                                    type = control_params$parallel_type)
   }
 
-  print("running SQG-DE...")
+  message("running SQG-DE...")
 
 
 
@@ -201,7 +205,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
       if(control_params$converge_crit=='percent'){
         percent_improve=(1-stats::median(weights[iter_idx, ])/stats::median(weights[iter_idx-control_params$stop_check+1, ]))*100
         if(percent_improve<(control_params$stop_tol)){
-          print("Convergence criterion met. Stopping optimization early")
+          message("Convergence criterion met. Stopping optimization early")
           converge_test_passed=TRUE
           break
         }
@@ -209,7 +213,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
       if(control_params$converge_crit=='stdev'){
         weight_sd=stats::sd(weights[iter_idx:(iter_idx-control_params$stop_check+1), ])
         if(weight_sd<(control_params$stop_tol)){
-          print("Convergence criterion met. Stopping optimization early")
+          message("Convergence criterion met. Stopping optimization early")
           converge_test_passed=TRUE
           break
         }
@@ -219,14 +223,14 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
 
 
     if(iter%%100==0){
-      print(paste0('iter ', iter, '/', control_params$n_iter))
+      message(paste0('iter ', iter, '/', control_params$n_iter))
     }
     if(iter%%control_params$thin==0 & !(iter==control_params$n_iter)){
       iter_idx = iter_idx+1
     }
 
   }
-  print(paste0('run complete!'))
+  message(paste0('run complete!'))
   # cluster stop
   if(!control_params$parallel_type=='none'){
     parallel::stopCluster(cl = cl_use)

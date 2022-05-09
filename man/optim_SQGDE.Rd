@@ -55,8 +55,9 @@ out <- optim_SQGDE(ObjFun = ExampleObjFun,
                                               return_trace = TRUE),
                    data = dataExample,
                    param_names = param_names_example)
-
+old_par <- par() # save graphic state for user
 # plot particle trajectory
+
 par(mfrow=c(2,2))
 matplot(out$particles_trace[,,1],type='l')
 matplot(out$particles_trace[,,2],type='l')
@@ -68,4 +69,7 @@ out$solution
 
 #analytic solution
 apply(dataExample, 2, mean)
+
+par(old_par) # restore user graphic state
+
 }
