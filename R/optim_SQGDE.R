@@ -119,6 +119,8 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
     doParallel::registerDoParallel(control_params$n_cores_use)
     cl_use = parallel::makeCluster(control_params$n_cores_use,
                                    type = control_params$parallel_type)
+    parallel::clusterExport(cl_use,
+                            varlist = control_params$varlist)
   }
 
   message("running SQG-DE...")
