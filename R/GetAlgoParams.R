@@ -20,6 +20,7 @@
 #' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @param varlist A list of the variables and functions to export for parallelization.
+#' @param print_int A positive interget to print how many iterations have occured.
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
 GetAlgoParams = function(n_params,
@@ -41,7 +42,8 @@ GetAlgoParams = function(n_params,
                          stop_check = 10,
                          stop_tol = 1e-4,
                          converge_crit = 'stdev',
-                         varlist = NULL){
+                         varlist = NULL,
+                         print_int = 100){
   # n_params
   ### catch errors
   n_params = as.integer(n_params)
@@ -271,6 +273,19 @@ GetAlgoParams = function(n_params,
     stop('ERROR: varlist must be a list of strings of variable and function names')
   }
 
+  ##################
+  # print_int
+  if(is.null(print_int)){
+    print_int = 100
+  }
+  ### catch errors
+  print_int = as.integer(print_int)
+  if(any(!is.finite(print_int))){
+    stop('ERROR: print_int is not finite')
+  } else if( print_int<1 | length(print_int)>1){
+    stop('ERROR: print_int must be a postitive integer scalar, and atleast 1')
+  }
+
   out = list('n_params' = n_params,
              'n_particles' = n_particles,
              'n_iter' = n_iter,
@@ -291,7 +306,8 @@ GetAlgoParams = function(n_params,
              'stop_tol' = stop_tol,
              'stop_check' = stop_check,
              'converge_crit' = converge_crit,
-             'varlist' = varlist)
+             'varlist' = varlist,
+             'print_int' = print_int)
 
   return(out)
 }
