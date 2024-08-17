@@ -69,7 +69,7 @@ GetAlgoParams(
 
 \item{var_list}{A vector of names of variables and functions to export for parallelization (via parallel::clusterExport). Default value is NULL.}
 
-\item{message_int}{An integer specifying the interval at which an update message is displayed, based on the number of completed iterations. Must be a positive value. The default is 100; set to \code{Inf} to disable messages.}
+\item{message_int}{An integer specifying the interval at which an update message is displayed, based on the number of completed iterations. Must be a positive value. The default is 100; set to \code{Inf} to disable these particular messages.}
 }
 \value{
 A list of control parameters for the optim_SQGDE function.

@@ -20,7 +20,7 @@
 #' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
 #' @param converge_crit A character string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @param var_list A vector of names of variables and functions to export for parallelization (via parallel::clusterExport). Default value is NULL.
-#' @param message_int An integer specifying the interval at which an update message is displayed, based on the number of completed iterations. Must be a positive value. The default is 100; set to `Inf` to disable messages.
+#' @param message_int An integer specifying the interval at which an update message is displayed, based on the number of completed iterations. Must be a positive value. The default is 100; set to `Inf` to disable these particular messages.
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
 GetAlgoParams = function(n_params,
