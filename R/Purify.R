@@ -24,8 +24,6 @@ Purify=function(pmem_index,
   # recompute weight
   weight_proposal = objFun(params_use,...)
 
-  if(is.na(weight_proposal))weight_proposal = Inf
-
   if(is.finite(weight_proposal)) {
     current_params[pmem_index,] = params_use
     current_weight[pmem_index] = weight_proposal
