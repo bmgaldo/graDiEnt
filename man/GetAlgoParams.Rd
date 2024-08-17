@@ -23,7 +23,9 @@ GetAlgoParams(
   give_up_init = 100,
   stop_check = 10,
   stop_tol = 1e-04,
-  converge_crit = "stdev"
+  converge_crit = "stdev",
+  varlist = NULL,
+  print_int = 100
 )
 }
 \arguments{
@@ -64,6 +66,10 @@ GetAlgoParams(
 \item{stop_tol}{A convergence metric must be less than value to be labeled as converged. The default is 1e-4.}
 
 \item{converge_crit}{A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.}
+
+\item{varlist}{A list of the variables and functions to export for parallelization.}
+
+\item{print_int}{A positive interget to print how many iterations have occured.}
 }
 \value{
 A list of control parameters for the optim_SQGDE function.
