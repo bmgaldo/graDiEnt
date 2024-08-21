@@ -6,3 +6,13 @@
 ^README\.Rmd$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^revdep$
+^\.DS_Store$
+^\.Rhistory$
+^\.Rprofile$
+^\.gitattributes$
+^\.gitignore$
+^revdep/\.DS_Store$
+^revdep/\.gitignore$
+^tests/\.DS_Store$
+^\.git$
