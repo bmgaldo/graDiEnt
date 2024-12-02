@@ -32,7 +32,7 @@ SQG_DE_bin_1_pos=function(pmem_index,
   # resample weight
   if(resample_weight){
     # TODO: later update to only update the prior density in blocked updating
-    # if(!is.null(prior_function) & !is.null(prior_function)){
+    # if(!is.null(prior_function) & !is.null(current_like_weight)){
     #   like_weight_use = current_like_weight[pmem_index]
     #   if(all(is.finite(params_use)))weight_use = like_weight_use + prior_function(params_use, ...)
     # }else{
@@ -43,7 +43,7 @@ SQG_DE_bin_1_pos=function(pmem_index,
   }else{
     weight_use = current_weight[pmem_index]
   }
-  best_pmem_index = which.min(current_weight) # best specific
+  best_pmem_index = which.min(current_weight) # "best" specific
   len_param_use = length(params_use)
 
   params_update = current_params[pmem_index, params_update_ind_vec]
@@ -120,9 +120,9 @@ SQG_DE_bin_1_pos=function(pmem_index,
   if(is.na(weight_proposal))weight_proposal = Inf
 
     # # TODO: later update to only update the prior density in blocked updating
-    # if(!is.null(prior_function) & !is.null(prior_function)){
+    # if(!is.null(prior_function) & !is.null(current_like_weight)){
     #     if(all(is.finite(params_use)))weight_proposal = objFun(params_use,...)
-    #     like_proposal = weight_proposal - prior_function(params_use, ...)
+    #     like_weight_proposal = weight_proposal - prior_function(params_use, ...)
     # }else{
     #     if(all(is.finite(params_use)))weight_use = objFun(params_use,...)
     # }

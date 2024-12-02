@@ -274,7 +274,7 @@ optim_SQGDE = function(ObjFun_list,
                                   current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
                                   objFun = ObjFun_list[[l]],  # objective function (returns scalar)
                                   scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
-                                  # like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
+                                  # current_like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
                                   # prior_function = prior_function_list[[l]],
                                   resample_weight = control_params$resample_weight,
                                   params_update_ind_vec = control_params$param_ind_to_update_list[[l]],
@@ -305,7 +305,7 @@ optim_SQGDE = function(ObjFun_list,
                                                  current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
                                                  objFun = ObjFun_list[[l]],  # objective function (returns scalar)
                                                  scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
-                                                 # like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
+                                                 # current_like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
                                                  # prior_function = prior_function_list[[l]],
                                                  resample_weight = control_params$resample_weight,
                                                  params_update_ind_vec = control_params$param_ind_to_update_list[[l]],
@@ -347,7 +347,7 @@ optim_SQGDE = function(ObjFun_list,
                                     current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
                                     objFun = ObjFun_list[[l]],  # objective function (returns scalar)
                                     scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
-                                    # like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
+                                    # current_like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
                                     # prior_function = prior_function_list[[l]],
                                     ...)),
                       nrow = control_params$n_particles,
@@ -369,7 +369,7 @@ optim_SQGDE = function(ObjFun_list,
                                                    current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
                                                    objFun = ObjFun_list[[l]],  # objective function (returns scalar)
                                                    scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
-                                                   # like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
+                                                   # current_like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
                                                    # prior_function = prior_function_list[[l]],
                                                    ...)),
                       control_params$n_particles,
