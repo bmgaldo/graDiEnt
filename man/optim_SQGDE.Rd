@@ -4,12 +4,20 @@
 \alias{optim_SQGDE}
 \title{optim_SQGDE}
 \usage{
-optim_SQGDE(ObjFun, control_params = GetAlgoParams(), ...)
+optim_SQGDE(ObjFun_list, control_params = GetAlgoParams(), ...)
 }
 \arguments{
-\item{ObjFun}{A scalar-returning function to minimize whose first argument is a real-valued n_params-dimensional vector.}
+\item{ObjFun_list}{A list or sinngle function that is a scalar-returning
+function(s) to minimize whose first argument is a real-valued
+n_params-dimensional vector. A list of functions enables "blocking", where
+the list of functions are "sub-iterated" through so that only a subset of
+parameters are updated at one sub-iteration. Currently, this feature requires
+the user to specify the "Master Objective Function" where all particles are
+updated as the first element of the list for initialization.}
 
-\item{control_params}{control parameters for SQG-DE algo. see \code{\link{GetAlgoParams}} function documentation for more details. The only argument you NEED to pass here is n_params.}
+\item{control_params}{control parameters for SQG-DE algo. see
+\code{\link{GetAlgoParams}} function documentation for more details. The only
+argument you NEED to pass here is n_params.}
 
 \item{...}{additional arguments to pass ObjFun.}
 }
@@ -17,7 +25,9 @@ optim_SQGDE(ObjFun, control_params = GetAlgoParams(), ...)
 list containing solution and it's corresponding weight (i.e. f(solution)).
 }
 \description{
-Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maximize a function f(x), simply pass g(x)=-f(x) to ObjFun argument.
+Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE;
+Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x).
+To maximize a function f(x), simply pass g(x)=-f(x) to ObjFun argument.
 }
 \examples{
 ##############
@@ -47,7 +57,7 @@ ExampleObjFun=function(x,data,param_names){
 
 ########################
 # run optimization
-out <- optim_SQGDE(ObjFun = ExampleObjFun,
+out <- optim_SQGDE(ObjFun_list = ExampleObjFun,
                    control_params = GetAlgoParams(n_params = length(param_names_example),
                                              n_iter = 250,
                                               n_particles = 12,

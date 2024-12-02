@@ -1,6 +1,9 @@
 #' GetAlgoParams
 #' @description Get control parameters for optim_SQGDE function.
 #' @param n_params The number of parameters estimated/optimized, this integer value NEEDS to be specified.
+#' @param param_ind_to_update_list A list of vectors of indices or logical to update for each objective function in ObjFunction_list.
+#' @param resample_weight A control parameter that resamples the weight of the previous particle. Useful to determine the new density of part of the parameters when other parameters have changed since the last weight evaluation. Default is FALSE.
+#' Allows a subset of parameters to be updated while still using another subset of parameters.
 #' @param n_particles The number of particles (population size), 3*n_params is the default value.
 #' @param n_iter The number of iterations to run the algorithm, 1000 is default.
 #' @param n_diff The number of mutually exclusive vector pairs to stochastically approximate the gradient.
@@ -11,6 +14,7 @@
 #' @param step_size A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).
 #' @param jitter_size A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.
 #' @param parallel_type A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.
+#' @param parallel_seed A positive integer to seed the seed in the parallel cluster. The default is "NULL".
 #' @param return_trace A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.
 #' @param thin A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.
 #' @param purify A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisy. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.
@@ -19,9 +23,16 @@
 #' @param stop_check An integer for how often to check the convergence criterion. The default is 10 iterations.
 #' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
+#' @param varlist A list of the variables and functions to export for parallelization.
+#' @param print_int A positive integer to print how many iterations have occurred
+#' @param save_int A positive integer to save the current R session within the optimization procedure.
+#' @param save_rds_string A sting to save the current R output of the function.
+
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
 GetAlgoParams = function(n_params,
+                         param_ind_to_update_list = NULL,
+                         resample_weight = FALSE,
                          n_particles = NULL,
                          n_diff = 2,
                          n_iter = 1000,
@@ -32,6 +43,7 @@ GetAlgoParams = function(n_params,
                          jitter_size = 1e-6,
                          crossover_rate = 1,
                          parallel_type = 'none',
+                         parallel_seed = NULL,
                          return_trace = FALSE,
                          thin = 1,
                          purify = Inf,
@@ -39,7 +51,11 @@ GetAlgoParams = function(n_params,
                          give_up_init = 100,
                          stop_check = 10,
                          stop_tol = 1e-4,
-                         converge_crit = 'stdev'){
+                         converge_crit = 'stdev',
+                         varlist = NULL,
+                         print_int = 100,
+                         save_int = -1,
+                         save_rds_string = "SQGDE_DEFAULT_IMAGE.rds"){
   # n_params
   ### catch errors
   n_params = as.integer(n_params)
@@ -47,6 +63,43 @@ GetAlgoParams = function(n_params,
     stop('ERROR: n_params is not finite')
   }  else if( n_params<1 | length(n_params)>1){
     stop('ERROR: n_params must be a postitive integer scalar')
+  }
+
+  ### no list given, default to all parameters
+  if(is.null(param_ind_to_update_list)){
+    param_ind_to_update_list = list(rep(TRUE, n_params))
+  }
+  for(l in param_ind_to_update_list){
+    if(!is.numeric(l)){
+      if(!is.logical(l)){
+        stop('ERROR: each element of param_ind_to_update_list must be a LOGICAL
+             vector of parameter indices of length n_params')
+      }
+    }
+    # if(is.numeric(l)){
+    #   if(any(l<1) | any(length(l)>n_params)){
+    #     stop('ERROR: value in the numeric vector of each element
+    #        param_ind_to_update_list of must be a between 1 and n_params')
+    #   }
+    # }
+    if(length(l) != n_params){
+      stop('ERROR: each element of param_ind_to_update_list must be length
+           n_params')
+    }
+    if(any(!is.finite(l))){
+      stop('ERROR: each element param_ind_to_update_list of must be a finite
+           numeric vector')
+    }
+  }
+  # if(length(param_ind_to_update_list) != length(ObjFun_list)){
+  #   stop('ERROR: param_ind_to_update_list must be the same length as ObjFun_list')
+  # }
+
+  # resample_weight
+  if(is.null(resample_weight)){
+    resample_weight = FALSE
+  }else{
+    resample_weight = as.logical(resample_weight)
   }
 
   # n_particles
@@ -163,6 +216,16 @@ GetAlgoParams = function(n_params,
     stop(paste('ERROR: invalid parallel_type.'))
   }
 
+  #parallel_seed
+  ### assign NULL value default
+  if(is.null(parallel_seed)){
+    parallel_seed = NULL
+  }else if(!is.integer(parallel_seed) & parallel_seed < 0){
+    ### catch any errors
+    stop(paste('ERROR: invalid parallel_seed.
+               Please select an integer greater than 0.'))
+  }
+
   #converge_crit
   validConType = c('stdev','percent')
   ### assign NULL value default
@@ -259,7 +322,65 @@ GetAlgoParams = function(n_params,
     stop('ERROR: stop_tol must be a scalar positive')
   }
 
+  ##################
+  # varlist
+  if(any(!is.list(varlist))){
+    varlist = as.list(varlist)
+  }
+  ### catch errors
+  if(!is.list(varlist)){
+    stop('ERROR: varlist must be a list of strings of variable and function names')
+  }
+
+  ##################
+  # print_int
+  if(is.null(print_int)){
+    print_int = 100
+  }
+  ### catch errors
+  print_int = as.integer(print_int)
+  if(any(!is.finite(print_int))){
+    stop('ERROR: print_int is not finite')
+  } else if( print_int<1 | length(print_int)>1){
+    stop('ERROR: print_int must be a postitive integer scalar, and atleast 1')
+  }
+
+  ##################
+  # save_int
+  if(is.null(save_int)){
+    save_int = -1
+  }
+  ### catch errors
+  save_int = as.integer(save_int)
+  if(any(!is.finite(save_int))){
+    stop('ERROR: save_int is not finite')
+  } else if(length(save_int) > 1){
+    stop('ERROR: save_int must be a postitive integer scalar, and at least 1 or
+         less than 0 to not save')
+  }
+
+  ##################
+  # save_rds_string
+  if(save_int > 0){
+    if(!is.character(save_rds_string)){
+      stop('ERROR: save_rds_string must be a single CHARACTER sting that ends in .rds')
+    }
+    if(length(save_rds_string) != 1){
+      stop('ERROR: save_rds_string must be a SINGLE character sting that ends in .rds')
+    }
+    if(substring(text = save_rds_string,
+                 nchar(save_rds_string)-3,
+                 nchar(save_rds_string)) != ".rds"){
+      warning('Warning: save_rds_string must be a character sting that ends in .rds.
+              Adding .rds to supplied string.')
+      save_rds_string <- paste0(save_rds_string, ".rds")
+    }
+  }
+
+
   out = list('n_params' = n_params,
+             'param_ind_to_update_list' = param_ind_to_update_list,
+             'resample_weight' = resample_weight,
              'n_particles' = n_particles,
              'n_iter' = n_iter,
              'init_sd' = init_sd,
@@ -278,7 +399,12 @@ GetAlgoParams = function(n_params,
              'give_up_init'= give_up_init,
              'stop_tol' = stop_tol,
              'stop_check' = stop_check,
-             'converge_crit' = converge_crit)
+             'converge_crit' = converge_crit,
+             'varlist' = varlist,
+             'print_int' = print_int,
+             'parallel_seed' = parallel_seed,
+             'save_int' = save_int,
+             'save_rds_string' = save_rds_string)
 
   return(out)
 }
