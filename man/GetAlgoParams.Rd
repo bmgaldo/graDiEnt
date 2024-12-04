@@ -21,7 +21,7 @@ GetAlgoParams(
   parallel_seed = NULL,
   return_trace = FALSE,
   thin = 1,
-  purify = Inf,
+  purify = NULL,
   adapt_scheme = NULL,
   give_up_init = 100,
   stop_check = 10,
@@ -83,7 +83,7 @@ Allows a subset of parameters to be updated while still using another subset of 
 
 \item{print_int}{A positive integer to print how many iterations have occurred}
 
-\item{save_int}{A positive integer to save the current R session within the optimization procedure.}
+\item{save_int}{A positive integer to save the current R session within the optimization procedure. Negative values result in no saving. Default = -1.}
 
 \item{save_rds_string}{A sting to save the current R output of the function.}
 }

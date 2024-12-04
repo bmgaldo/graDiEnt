@@ -98,7 +98,7 @@ optim_SQGDE = function(ObjFun_list,
                 length(ObjFun_list),
                 ' which is not the same length as the param_ind_to_update_list, ',
                 length(control_params$param_ind_to_update_list), '!'))
-    }
+  }
 
   # prior_function_list
   ### catch errors
@@ -161,6 +161,9 @@ optim_SQGDE = function(ObjFun_list,
     }
     parallel::clusterExport(cl_use,
                             varlist = control_params$varlist)
+    parallel::clusterExport(cl_use,
+                            varlist = "grad_approx_fn",
+                            envir = environment())
   }
 
   # pop initialization
@@ -182,16 +185,14 @@ optim_SQGDE = function(ObjFun_list,
           if(is.list(ObjFun_list)){
             # temp_weight <- 0
             for(l in seq_along(ObjFun_list)){
-              # temp_weight = temp_weight + ObjFun_list[[l]](particles[1, pmem_index, ], ...)
               weights[1,pmem_index,l] = ObjFun_list[[l]](particles[1, pmem_index, ], ...)
               # TODO: for blocking
-              # like_weights[1,pmem_index,l] = weights[1,pmem_index,l] - prior_function_list[[l]](particles[1, pmem_index, ], ...)
+              # like_weights[1,pmem_index,l] = weights[1,pmem_index,l] -
+              # prior_function_list[[l]](particles[1, pmem_index, ], ...)
               if(!is.finite(weights[1, pmem_index, l])){
                 weights[1, pmem_index, l] = Inf
               }
             }
-            # update particle after adaption
-            # weights[1, pmem_index] = temp_weight
           }else{
             stop("ObjFun_list is not iterable!")
           }
@@ -219,13 +220,13 @@ optim_SQGDE = function(ObjFun_list,
                      rep(x = control_params$init_center, each = length(pmem_index)),
                      rep(x = control_params$init_sd, each = length(pmem_index)))
       # parallel apply ObjFun on needed particles only
-
-
       for(l in seq_along(ObjFun_list)){
-        weights[1, pmem_index, l] = parallel::parApply(cl = cl_use,
-                                                       X = particles[1, pmem_index,],
-                                                       MARGIN = c(1),
-                                                       FUN = ObjFun_list[[l]], ...)
+        weights[1, pmem_index, l] =
+          parallel::parApply(cl = cl_use,
+                             X = particles[1, pmem_index,] |>
+                               matrix(nrow = control_params$n_particles),
+                             MARGIN = c(1),
+                             FUN = ObjFun_list[[l]], ...)
         # TODO: for blocking
         # like_weights[1,pmem_index,l] = weights[1,pmem_index,l] - parallel::parApply(cl = cl_use,
         # X = particles[1, pmem_index,],
@@ -247,19 +248,6 @@ optim_SQGDE = function(ObjFun_list,
   }
   message('population initialization complete  :)')
 
-  # assign adaption scheme
-  # AdaptSQGDE = SQG_DE_bin_1_pos # TODO: later feature for conciseness
-  # if(control_params$adapt_scheme=='rand'){
-  #   AdaptSQGDE = SQG_DE_bin_1_rand
-  # }
-  # if(control_params$adapt_scheme=='best'){
-  #   AdaptSQGDE = SQG_DE_bin_1_best
-  # }
-  # if(control_params$adapt_scheme=='current'){
-  #   AdaptSQGDE = SQG_DE_bin_1_curr
-  # }
-  AdaptSQGDE = SQG_DE_bin_1_pos
-
   message("running SQG-DE...")
 
   iter_idx=1
@@ -269,8 +257,10 @@ optim_SQGDE = function(ObjFun_list,
     if(control_params$parallel_type=='none'){
       for(l in seq_along(ObjFun_list)){
         # adapt particles using SQG DE sequentially
-        temp=matrix(unlist(lapply(1:control_params$n_particles, AdaptSQGDE,
-                                  current_params = particles[iter_idx,,],   # current parameter values (numeric matrix)
+        temp=matrix(unlist(lapply(1:control_params$n_particles,
+                                  SQG_DE_bin_1_pos,
+                                  current_params = particles[iter_idx,,] |>
+                                    matrix(nrow = control_params$n_particles),   # current parameter values (numeric matrix)
                                   current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
                                   objFun = ObjFun_list[[l]],  # objective function (returns scalar)
                                   scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
@@ -300,8 +290,9 @@ optim_SQGDE = function(ObjFun_list,
         # adapt particles using SQG DE in parallel
         temp=matrix(unlist(parallel::parLapplyLB(cl = cl_use,
                                                  X = 1:control_params$n_particles,
-                                                 fun = AdaptSQGDE,
-                                                 current_params = particles[iter_idx,,],   # current parameter values (numeric matrix)
+                                                 fun = SQG_DE_bin_1_pos,
+                                                 current_params = particles[iter_idx,,] |>
+                                                   matrix(nrow = control_params$n_particles),   # current parameter values (numeric matrix)
                                                  current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
                                                  objFun = ObjFun_list[[l]],  # objective function (returns scalar)
                                                  scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
@@ -317,8 +308,6 @@ optim_SQGDE = function(ObjFun_list,
                                                  ...)),
                     control_params$n_particles,
                     control_params$n_params+1, byrow=TRUE)
-
-
         # update particle after adaption
         weights[iter_idx,,l] = temp[, 1]
         # like_weights[iter_idx,,l] = temp[, 2] # TODO: later update to only update the prior density in blocked updating
@@ -341,8 +330,10 @@ optim_SQGDE = function(ObjFun_list,
 
       if(control_params$parallel_type=='none'){
         for(l in seq_along(ObjFun_list)){
-          temp=matrix(unlist(lapply(1:control_params$n_particles, Purify,
-                                    current_params = particles[iter_idx,,],   # current parameter values (numeric  matrix)
+          temp=matrix(unlist(lapply(1:control_params$n_particles,
+                                    Purify,
+                                    current_params = particles[iter_idx,,] |>
+                                      matrix(nrow = control_params$n_particles),   # current parameter values (numeric  matrix)
                                     params_update_ind_vec = control_params$param_ind_to_update_list[[l]],
                                     current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
                                     objFun = ObjFun_list[[l]],  # objective function (returns scalar)
@@ -363,8 +354,11 @@ optim_SQGDE = function(ObjFun_list,
         }
       } else {
         for(l in seq_along(ObjFun_list)){
-          temp=matrix(unlist(parallel::parLapplyLB(cl_use, 1:control_params$n_particles, Purify,
-                                                   current_params = particles[iter_idx,,],   # current parameter values (numeric matrix)
+          temp=matrix(unlist(parallel::parLapplyLB(cl_use,
+                                                   1:control_params$n_particles,
+                                                   Purify,
+                                                   current_params = particles[iter_idx,,] |>
+                                                     matrix(nrow = control_params$n_particles),   # current parameter values (numeric matrix)
                                                    params_update_ind_vec = control_params$param_ind_to_update_list[[l]],
                                                    current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
                                                    objFun = ObjFun_list[[l]],  # objective function (returns scalar)
@@ -395,7 +389,6 @@ optim_SQGDE = function(ObjFun_list,
 
     if(iter %% control_params$stop_check==0){
       # assign convergence method
-
       if(control_params$converge_crit=='percent'){
         if(length(weights[1,1,]) > 1){
           percent_improve=(1-((weights[iter_idx,,, drop = FALSE] |> apply(MARGIN = 1, stats::median)))/

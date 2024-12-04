@@ -25,7 +25,7 @@
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @param varlist A list of the variables and functions to export for parallelization.
 #' @param print_int A positive integer to print how many iterations have occurred
-#' @param save_int A positive integer to save the current R session within the optimization procedure.
+#' @param save_int A positive integer to save the current R session within the optimization procedure. Negative values result in no saving. Default = -1.
 #' @param save_rds_string A sting to save the current R output of the function.
 
 #' @return A list of control parameters for the optim_SQGDE function.
@@ -46,7 +46,7 @@ GetAlgoParams = function(n_params,
                          parallel_seed = NULL,
                          return_trace = FALSE,
                          thin = 1,
-                         purify = Inf,
+                         purify = NULL,
                          adapt_scheme = NULL,
                          give_up_init = 100,
                          stop_check = 10,
@@ -58,7 +58,13 @@ GetAlgoParams = function(n_params,
                          save_rds_string = "SQGDE_DEFAULT_IMAGE.rds"){
   # n_params
   ### catch errors
-  n_params = as.integer(n_params)
+  if(length(n_params) != 1){
+    stop('ERROR: n_params is not a finite number')
+  }else if (!is.numeric(n_params) | !is.finite(n_params)){
+    stop('ERROR: n_params is not a finite number')
+  }else{
+    n_params = as.integer(n_params)
+  }
   if(any(!is.finite(n_params))){
     stop('ERROR: n_params is not finite')
   }  else if( n_params<1 | length(n_params)>1){
@@ -69,26 +75,37 @@ GetAlgoParams = function(n_params,
   if(is.null(param_ind_to_update_list)){
     param_ind_to_update_list = list(rep(TRUE, n_params))
   }
-  for(l in param_ind_to_update_list){
-    if(!is.numeric(l)){
-      if(!is.logical(l)){
-        stop('ERROR: each element of param_ind_to_update_list must be a LOGICAL
+  if(is.list(param_ind_to_update_list)){
+    for(l in param_ind_to_update_list){
+      if(!is.numeric(l)){
+        if(!is.logical(l)){
+          stop('ERROR: each element of param_ind_to_update_list must be a LOGICAL
              vector of parameter indices of length n_params')
+        }
+      }
+      # if(is.numeric(l)){
+      #   if(any(l<1) | any(length(l)>n_params)){
+      #     stop('ERROR: value in the numeric vector of each element
+      #        param_ind_to_update_list of must be a between 1 and n_params')
+      #   }
+      # }
+      if(length(l) != n_params){
+        stop('ERROR: each element of param_ind_to_update_list must be length
+           n_params')
+      }
+      if(any(!is.finite(l))){
+        stop('ERROR: each element param_ind_to_update_list of must be a finite
+           numeric vector')
       }
     }
-    # if(is.numeric(l)){
-    #   if(any(l<1) | any(length(l)>n_params)){
-    #     stop('ERROR: value in the numeric vector of each element
-    #        param_ind_to_update_list of must be a between 1 and n_params')
-    #   }
-    # }
-    if(length(l) != n_params){
-      stop('ERROR: each element of param_ind_to_update_list must be length
-           n_params')
+  }else{
+    if(length(param_ind_to_update_list) != n_params){
+      stop('ERROR: param_ind_to_update_list must be length
+           n_params if not a list')
     }
-    if(any(!is.finite(l))){
-      stop('ERROR: each element param_ind_to_update_list of must be a finite
-           numeric vector')
+    if(any(!is.finite(param_ind_to_update_list))){
+      stop('ERROR: param_ind_to_update_list of must be a finite
+           numeric vector if not a list')
     }
   }
   # if(length(param_ind_to_update_list) != length(ObjFun_list)){
@@ -220,7 +237,7 @@ GetAlgoParams = function(n_params,
   ### assign NULL value default
   if(is.null(parallel_seed)){
     parallel_seed = NULL
-  }else if(!is.integer(parallel_seed) & parallel_seed < 0){
+  }else if(!(parallel_seed %% 1 == 0) | parallel_seed < 0){
     ### catch any errors
     stop(paste('ERROR: invalid parallel_seed.
                Please select an integer greater than 0.'))
@@ -269,9 +286,14 @@ GetAlgoParams = function(n_params,
   }
 
   # purify
+  no_check <- FALSE
   if(is.null(purify)){
     purify = Inf
-  } else if(is.finite(purify)){
+    no_check <- TRUE
+  }else if(!is.finite(purify) & !no_check){
+    warning('Warning: purify was not finite. Defaulting to not using Purify.')
+    purify = Inf
+  }else if(is.finite(purify)){
     purify = as.integer(purify)
   }
   ### catch errors
@@ -291,7 +313,8 @@ GetAlgoParams = function(n_params,
 
   ##################
   # give_up_init
-  if(any(is.null(give_up_init)) | any(is.na(give_up_init))){
+  if(any(is.null(give_up_init)) | any(!is.finite(give_up_init))){
+    warning('Warning: give_up_init was null or not finite. Using default value of 100.')
     give_up_init = 100
   }
   give_up_int=round(give_up_init)
@@ -302,13 +325,14 @@ GetAlgoParams = function(n_params,
 
   ##################
   # stop_check
-  if(any(is.null(stop_check)) | any(is.na(stop_check))){
+  if(any(is.null(stop_check)) | any(!is.finite(stop_check))){
+    warning('Warning: stop_check was null or non-finite. Using default value of 10.')
     stop_check = 10
   }
   stop_check=round(stop_check)
   ### catch errors
   if(any(stop_check < 2) | (length(stop_check)>1)){
-    stop('ERROR: stop_check must be a scalar positive integer and greater than 2')
+    stop('ERROR: stop_check must be a scalar positive integer and greater than 1')
   }
 
 
@@ -329,7 +353,12 @@ GetAlgoParams = function(n_params,
   }
   ### catch errors
   if(!is.list(varlist)){
-    stop('ERROR: varlist must be a list of strings of variable and function names')
+    stop('ERROR: varlist must be a list of strings of variable and function name!')
+  }
+  for(l in varlist){
+    if(!is.character(l)){
+      stop('ERROR: each element of stop varlist must be a string of variable and function name!')
+    }
   }
 
   ##################
@@ -347,17 +376,29 @@ GetAlgoParams = function(n_params,
 
   ##################
   # save_int
+  no_save_flag <- FALSE
   if(is.null(save_int)){
     save_int = -1
+    no_save_flag <- TRUE
+  }else if(!is.finite(save_int)){
+    stop('ERROR: save_int is not finite')
+  }else if(save_int < 0){
+    save_int = -1
+    no_save_flag <- TRUE
   }
   ### catch errors
   save_int = as.integer(save_int)
   if(any(!is.finite(save_int))){
     stop('ERROR: save_int is not finite')
-  } else if(length(save_int) > 1){
-    stop('ERROR: save_int must be a postitive integer scalar, and at least 1 or
-         less than 0 to not save')
   }
+  if(!no_save_flag){
+    if(length(save_int) > 1 | save_int < 1){
+      stop('ERROR: save_int must be a postitive integer scalar, and at least 1 or
+         less than 0 to not save')
+    }
+  }
+
+
 
   ##################
   # save_rds_string
