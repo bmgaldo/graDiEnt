@@ -113,16 +113,12 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   if(!control_params$parallel_type=='none'){
 
     message(paste0("initalizing ",
-                   control_params$parallel_type, " cluser with ",
-                   control_params$n_cores_use, " cores"))
+                 control_params$parallel_type, " cluser with ",
+                 control_params$n_cores_use, " cores"))
 
     doParallel::registerDoParallel(control_params$n_cores_use)
     cl_use = parallel::makeCluster(control_params$n_cores_use,
                                    type = control_params$parallel_type)
-    if(!is.null(control_params$var_list)){
-      parallel::clusterExport(cl_use,
-                              var_list = control_params$var_list)
-    }
   }
 
   message("running SQG-DE...")
@@ -149,14 +145,14 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
     } else {
       # adapt particles using SQG DE in parallel
       temp=matrix(unlist(parallel::parLapplyLB(cl_use, 1:control_params$n_particles, AdaptSQGDE,
-                                               current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
-                                               current_weight = weights[iter_idx, ],  # corresponding weight (numeric vector)
-                                               objFun = ObjFun,  # function we want to minimize (returns scalar)
-                                               step_size = control_params$step_size,
-                                               jitter_size = control_params$jitter_size,
-                                               n_particles = control_params$n_particles,
-                                               crossover_rate = control_params$crossover_rate,
-                                               n_diff = control_params$n_diff, ...)),
+                                             current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
+                                             current_weight = weights[iter_idx, ],  # corresponding weight (numeric vector)
+                                             objFun = ObjFun,  # function we want to minimize (returns scalar)
+                                             step_size = control_params$step_size,
+                                             jitter_size = control_params$jitter_size,
+                                             n_particles = control_params$n_particles,
+                                             crossover_rate = control_params$crossover_rate,
+                                             n_diff = control_params$n_diff, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)
 
@@ -185,10 +181,10 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                     ncol = control_params$n_params+1, byrow=TRUE)
       } else {
         temp=matrix(unlist(parallel::parLapplyLB(cl_use, 1:control_params$n_particles, Purify,
-                                                 current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
-                                                 current_weight = weights[iter_idx, ],  # corresponding weights (numeric vector)
-                                                 objFun = ObjFun,  # objective function (returns scalar)
-                                                 ...)),
+                                               current_params = particles[iter_idx, , ],   # current parameter values (numeric matrix)
+                                               current_weight = weights[iter_idx, ],  # corresponding weights (numeric vector)
+                                               objFun = ObjFun,  # objective function (returns scalar)
+                                               ...)),
                     control_params$n_particles,
                     control_params$n_params+1, byrow=TRUE)
       }
@@ -226,7 +222,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
 
 
 
-    if(iter%%control_params$message_int==0){
+    if(iter%%100==0){
       message(paste0('iter ', iter, '/', control_params$n_iter))
     }
     if(iter%%control_params$thin==0 & !(iter==control_params$n_iter)){

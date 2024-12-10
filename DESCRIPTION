@@ -1,6 +1,6 @@
 Package: graDiEnt
 Title: Stochastic Quasi-Gradient Differential Evolution Optimization
-Version: 1.1.0
+Version: 1.0.1
 Authors@R: 
     person(given = "Brendan Matthew",
            family = "Galdo",
@@ -10,7 +10,7 @@ Authors@R:
 Description: An optim-style implementation of the Stochastic Quasi-Gradient Differential Evolution (SQG-DE) optimization algorithm first published by Sala, Baldanzini, and Pierini (2018; <doi:10.1007/978-3-319-72926-8_27>). This optimization algorithm fuses the robustness of the population-based global optimization algorithm "Differential Evolution" with the efficiency of gradient-based optimization. The derivative-free algorithm uses population members to build stochastic gradient estimates, without any additional objective function evaluations. Sala, Baldanzini, and Pierini argue this algorithm is useful for 'difficult optimization problems under a tight function evaluation budget.' This package can run SQG-DE in parallel and sequentially.
 License: MIT + file LICENSE
 URL: https://github.com/bmgaldo/graDiEnt
-BugReports: https://github.com/bmgaldo/graDiEnt/issues
+BugReports: https://github.com/bmgaldo/graDiEnt
 Encoding: UTF-8
 Depends:
     R (>= 3.5.0)
@@ -18,7 +18,4 @@ Imports:
     stats,
     doParallel
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-Suggests: 
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
+RoxygenNote: 7.1.2

@@ -10,17 +10,15 @@
 #' @param n_cores_use An integer specifying the number of cores used when using parallelization. The default value is 1.
 #' @param step_size A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).
 #' @param jitter_size A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.
-#' @param parallel_type A character string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.
+#' @param parallel_type A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.
 #' @param return_trace A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.
 #' @param thin A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.
 #' @param purify A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisy. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.
-#' @param adapt_scheme A character string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is the default value.
+#' @param adapt_scheme A string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is the default value.
 #' @param give_up_init An integer for how many failed initialization attempts before stopping the optimization routine. 100 is the default value.
 #' @param stop_check An integer for how often to check the convergence criterion. The default is 10 iterations.
 #' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
-#' @param converge_crit A character string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
-#' @param var_list A vector of names of variables and functions to export for parallelization (via parallel::clusterExport). Default value is NULL.
-#' @param message_int An integer specifying the interval at which an update message is displayed, based on the number of completed iterations. Must be a positive value. The default is 100; set to `Inf` to disable these particular messages.
+#' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
 GetAlgoParams = function(n_params,
@@ -41,9 +39,7 @@ GetAlgoParams = function(n_params,
                          give_up_init = 100,
                          stop_check = 10,
                          stop_tol = 1e-4,
-                         converge_crit = 'stdev',
-                         var_list = NULL,
-                         message_int = 100){
+                         converge_crit = 'stdev'){
   # n_params
   ### catch errors
   n_params = as.integer(n_params)
@@ -118,7 +114,6 @@ GetAlgoParams = function(n_params,
   if(is.null(step_size)){
     step_size = 2.38/sqrt(2*n_params) # step size recommend in ter braak's 2006 paper
   }
-
   ### catch any errors
   if(any(!is.finite(step_size))){
     stop('ERROR: step_size is not finite')
@@ -128,12 +123,11 @@ GetAlgoParams = function(n_params,
     stop('ERROR: step_size vector length must be 1 ')
   }
 
-  # jitter_size
+  #jitter_size
   ### assign NULL value default
   if(is.null(jitter_size)){
     jitter_size = 1e-6
   }
-
   ### catch any errors
   if(any(!is.finite(jitter_size))){
     stop('ERROR: jitter_size is not finite')
@@ -148,7 +142,6 @@ GetAlgoParams = function(n_params,
   if(any(is.null(crossover_rate))){
     crossover_rate = 1
   }
-
   ### catch errors
   crossover_rate = as.numeric(crossover_rate)
   if(any(!is.finite(crossover_rate))){
@@ -266,32 +259,6 @@ GetAlgoParams = function(n_params,
     stop('ERROR: stop_tol must be a scalar positive')
   }
 
-  ##################
-  ### catch errors
-  if(any(is.null(var_list))){
-    if(length(var_list)>1){
-      stop('ERROR: var_list must be a vector of character strings of variable and function names or scalar NULL value')
-    }
-  } else if(!all(is.character(var_list))){
-    stop('ERROR: var_list must be a vector character strings of variable and function names or NULL')
-  }
-
-  ##################
-  # message_int
-  if(is.null(message_int)){
-    message_int = 100
-  }
-
-  ### catch errors
-  if( length(message_int) > 1 ){
-    stop('ERROR: message_int must be a postitive integer scalar, and atleast 1')
-  }
-
-  message_int = floor(message_int)
-  if( message_int < 1 | is.na(message_int)){
-    stop('ERROR: message_int must be a postitive integer scalar, and atleast 1')
-  }
-
   out = list('n_params' = n_params,
              'n_particles' = n_particles,
              'n_iter' = n_iter,
@@ -311,9 +278,7 @@ GetAlgoParams = function(n_params,
              'give_up_init'= give_up_init,
              'stop_tol' = stop_tol,
              'stop_check' = stop_check,
-             'converge_crit' = converge_crit,
-             'var_list' = var_list,
-             'message_int' = message_int)
+             'converge_crit' = converge_crit)
 
   return(out)
 }
