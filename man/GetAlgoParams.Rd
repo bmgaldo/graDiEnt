@@ -6,6 +6,8 @@
 \usage{
 GetAlgoParams(
   n_params,
+  param_ind_to_update_list = NULL,
+  resample_weight = FALSE,
   n_particles = NULL,
   n_diff = 2,
   n_iter = 1000,
@@ -16,18 +18,28 @@ GetAlgoParams(
   jitter_size = 1e-06,
   crossover_rate = 1,
   parallel_type = "none",
+  parallel_seed = NULL,
   return_trace = FALSE,
   thin = 1,
-  purify = Inf,
+  purify = NULL,
   adapt_scheme = NULL,
   give_up_init = 100,
   stop_check = 10,
   stop_tol = 1e-04,
-  converge_crit = "stdev"
+  converge_crit = "stdev",
+  varlist = NULL,
+  print_int = 100,
+  save_int = -1,
+  save_rds_string = "SQGDE_DEFAULT_IMAGE.rds"
 )
 }
 \arguments{
 \item{n_params}{The number of parameters estimated/optimized, this integer value NEEDS to be specified.}
+
+\item{param_ind_to_update_list}{A list of vectors of indices or logical to update for each objective function in ObjFunction_list.}
+
+\item{resample_weight}{A control parameter that resamples the weight of the previous particle. Useful to determine the new density of part of the parameters when other parameters have changed since the last weight evaluation. Default is FALSE.
+Allows a subset of parameters to be updated while still using another subset of parameters.}
 
 \item{n_particles}{The number of particles (population size), 3*n_params is the default value.}
 
@@ -49,6 +61,8 @@ GetAlgoParams(
 
 \item{parallel_type}{A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.}
 
+\item{parallel_seed}{A positive integer to seed the seed in the parallel cluster. The default is "NULL".}
+
 \item{return_trace}{A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.}
 
 \item{thin}{A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.}
@@ -64,6 +78,14 @@ GetAlgoParams(
 \item{stop_tol}{A convergence metric must be less than value to be labeled as converged. The default is 1e-4.}
 
 \item{converge_crit}{A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.}
+
+\item{varlist}{A list of the variables and functions to export for parallelization.}
+
+\item{print_int}{A positive integer to print how many iterations have occurred}
+
+\item{save_int}{A positive integer to save the current R session within the optimization procedure. Negative values result in no saving. Default = -1.}
+
+\item{save_rds_string}{A sting to save the current R output of the function.}
 }
 \value{
 A list of control parameters for the optim_SQGDE function.

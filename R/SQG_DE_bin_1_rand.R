@@ -8,28 +8,39 @@
 #' @param crossover_rate i.i.d. bernouli probability for updating a parameter
 #' @param n_diff number of particles used to estimate the gradient
 #' @param ... additional arguments for objective function
-#' 
+#'
 #' @noRd
-#' 
+#'
 SQG_DE_bin_1_rand=function(pmem_index,
                            current_params,
+                           params_update_ind_vec,
                            current_weight,
                            objFun,
-                           step_size=.8,
-                           jitter_size=1e-6,
+                           resample_weight,
+                           step_size = .8,
+                           jitter_size = 1e-6,
                            n_particles,
-                           crossover_rate=1,
+                           crossover_rate = 1,
                            n_diff, ... ){
 
-
-  # get current particle info
-  weight_use = current_weight[pmem_index]
+  # get statistics about particle
   params_use = current_params[pmem_index,]
+  # resample weight
+  if(resample_weight){
+    if(all(is.finite(params_use)))weight_use = objFun(params_use,...)
+    if(is.na(weight_use))weight_use = Inf
+    current_weight[pmem_index] <- weight_use
+  }else{
+    weight_use = current_weight[pmem_index]
+  }
   len_param_use = length(params_use)
-  
-  # sample parent 
+
+  params_update = current_params[pmem_index, params_update_ind_vec]
+  len_param_update = length(params_update)
+
+  # sample parent
   parent_indices = sample(c(1:n_particles),size=2*n_diff+1,replace=FALSE)
-  
+
   # use binomial to sample which params to update matching crossover rate frequency
   param_idices_bool = stats::rbinom(len_param_use, prob = crossover_rate, size=1)
 
@@ -68,10 +79,11 @@ SQG_DE_bin_1_rand=function(pmem_index,
 
   if(all(is.finite(grad_approx)) & is.finite(psi) & (psi>0)){
     # mate parents for proposal
-    params_use[param_indices] = current_params[parent_indices[2*n_diff+1],param_indices] -
+    params_update[param_indices] = current_params[parent_indices[2*n_diff+1],param_indices] -
       step_size*psi*(grad_approx) + # move in the direction against the gradient
-      stats::runif(len_param_use,-jitter_size,jitter_size) # a little noise
+      stats::runif(len_param_update,-jitter_size,jitter_size) # a little noise
   }
+  params_use[params_update_ind_vec] = params_update
   params_use = matrix(params_use,1,len_param_use)
 
   weight_proposal = NA

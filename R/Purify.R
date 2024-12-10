@@ -4,20 +4,23 @@
 #' @param current_params Current parameter values for partcle (numeric vector)
 #' @param current_weight  weights for current population
 #' @param objFun function we want to minimize
-#' @param n_particles number of particles
 #' @param ... additional arguments for objective function
 #' @noRd
-#' 
+#'
 Purify=function(pmem_index,
                 current_params,
+                params_update_ind_vec,
                 current_weight,
                 objFun,
-                n_particles, ... ){
+                ... ){
 
   # get statistics about particle
   weight_use = current_weight[pmem_index]
   params_use = current_params[pmem_index,]
   len_param_use = length(params_use)
+
+  params_update = current_params[pmem_index, params_update_ind_vec]
+  len_param_update = length(params_update)
 
   params_use = matrix(params_use,1,len_param_use)
 
