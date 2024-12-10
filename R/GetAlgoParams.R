@@ -419,6 +419,22 @@ GetAlgoParams = function(n_params,
   }
 
 
+  ##################
+  # outfile_string
+  if(!is.character(outfile_string)){
+      stop('ERROR: outfile_string must be a single CHARACTER sting that ends in .txt')
+  }
+  if(length(outfile_string) != 1){
+      stop('ERROR: outfile_string must be a SINGLE character sting that ends in .txt')
+  }
+  if(substring(text = outfile_string,
+                 nchar(outfile_string)-3,
+                 nchar(outfile_string)) != ".txt"){
+      warning('Warning: outfile_string must be a character sting that ends in .txt.
+              Adding .txt to supplied string.')
+      outfile_string <- paste0(outfile_string, ".txt")
+  }
+
   out = list('n_params' = n_params,
              'param_ind_to_update_list' = param_ind_to_update_list,
              'resample_weight' = resample_weight,
@@ -445,7 +461,8 @@ GetAlgoParams = function(n_params,
              'print_int' = print_int,
              'parallel_seed' = parallel_seed,
              'save_int' = save_int,
-             'save_rds_string' = save_rds_string)
+             'save_rds_string' = save_rds_string,
+             'outfile' = outfile_string)
 
   return(out)
 }

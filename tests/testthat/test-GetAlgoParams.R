@@ -597,6 +597,27 @@ test_that("save_rds_string validation works as expected", {
     "ERROR: save_rds_string must be a SINGLE character sting that ends in .rds")
 })
 
+test_that("outfile_string validation works as expected", {
+  # Valid input: character string ending in .rds
+  expect_silent(GetAlgoParams(n_params = 5,
+                              outfile_string = "my_par_model.txt"))
+
+  # Invalid input: non-character
+  expect_error(
+    GetAlgoParams(n_params = 5, outfile_string = 123),
+    "ERROR: outfile_string must be a single CHARACTER sting that ends in .rds")
+
+  # Invalid input: character string not ending in .rds
+  expect_warning(GetAlgoParams(n_params = 5,
+                               outfile_string = "my_par_model"))
+
+  # Invalid input: vector of strings
+  expect_error(
+    GetAlgoParams(n_params = 5,
+                  outfile_string = c("my_par_model1.txt", "my_par_model2.txt")),
+    "ERROR: outfile_string must be a SINGLE character sting that ends in .rds")
+})
+
 # Test for errors with invalid input types
 test_that("GetAlgoParams handles invalid input types", {
   expect_error(GetAlgoParams(n_params = "invalid"))  # Non-numeric n_params

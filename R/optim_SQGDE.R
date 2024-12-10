@@ -149,11 +149,11 @@ optim_SQGDE = function(ObjFun_list,
       cl_use =
         parallel::makePSOCKcluster(
           names = control_params$n_cores_use,
-          outfile = "SQGDE_parallel_outfile.txt")
+          outfile = control_params$outfile)
     }else if(control_params$parallel_type == "FORK"){
       cl_use =
         parallel::makeForkCluster(control_params$n_cores_use,
-                                  outfile = "SQGDE_parallel_outfile.txt")
+                                  outfile = control_params$outfile)
     }
 
     if(!is.null(control_params$parallel_seed)){
