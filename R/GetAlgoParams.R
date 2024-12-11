@@ -1,7 +1,7 @@
 #' GetAlgoParams
 #' @description Get control parameters for optim_SQGDE function.
 #' @param n_params The number of parameters estimated/optimized, this integer value NEEDS to be specified.
-#' @param param_ind_to_update_list A list of vectors of indices or logical to update for each objective function in ObjFunction_list.
+#' @param param_ind_to_update_list A list of vectors of indices or logical to update for each objective function in ObjFun.
 #' @param resample_weight A control parameter that resamples the weight of the previous particle. Useful to determine the new density of part of the parameters when other parameters have changed since the last weight evaluation. Default is FALSE.
 #' Allows a subset of parameters to be updated while still using another subset of parameters.
 #' @param n_particles The number of particles (population size), 3*n_params is the default value.
