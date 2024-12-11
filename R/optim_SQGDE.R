@@ -3,13 +3,11 @@
 #' @description  Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE;
 #' Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x).
 #' To maximize a function f(x), simply pass g(x)=-f(x) to ObjFun argument.
-#' @param ObjFun_list A list or sinngle function that is a scalar-returning
+#' @param ObjFun A list or single function that is a scalar-returning
 #' function(s) to minimize whose first argument is a real-valued
 #' n_params-dimensional vector. A list of functions enables "blocking", where
 #' the list of functions are "sub-iterated" through so that only a subset of
-#' parameters are updated at one sub-iteration. Currently, this feature requires
-#' the user to specify the "Master Objective Function" where all particles are
-#' updated as the first element of the list for initialization.
+#' parameters are updated at one sub-iteration.
 #' @param control_params control parameters for SQG-DE algo. see
 #' \code{\link{GetAlgoParams}} function documentation for more details. The only
 #' argument you NEED to pass here is n_params.
@@ -45,7 +43,7 @@
 #'
 #' ########################
 #' # run optimization
-#' out <- optim_SQGDE(ObjFun_list = ExampleObjFun,
+#' out <- optim_SQGDE(ObjFun = ExampleObjFun,
 #'                    control_params = GetAlgoParams(n_params = length(param_names_example),
 #'                                              n_iter = 250,
 #'                                               n_particles = 12,
@@ -71,31 +69,31 @@
 #' par(old_par) # restore user graphic state
 #'
 
-optim_SQGDE = function(ObjFun_list,
+optim_SQGDE = function(ObjFun,
                        # prior_function_list = NULL,
                        control_params = GetAlgoParams(), ...){
 
 
-  # ObjFun_list
+  # ObjFun
   ### catch errors
-  if(length(ObjFun_list) == 1){
-    if(!is.function(ObjFun_list)){
-      stop('ERROR: ObjFun_list is not A FUNCTION or list of functions!')
+  if(length(ObjFun) == 1){
+    if(!is.function(ObjFun)){
+      stop('ERROR: ObjFun is not A FUNCTION or list of functions!')
     }
-    ObjFun_list <- list(ObjFun_list)
+    ObjFun <- list(ObjFun)
   }else{
-    if(!is.list(ObjFun_list)){
-      stop('ERROR: ObjFun_list is not a function or LIST of functions!')
+    if(!is.list(ObjFun)){
+      stop('ERROR: ObjFun is not a function or LIST of functions!')
     }
-    for(f in seq_along(ObjFun_list)){
-      if(!is.function(ObjFun_list[[f]])){
-        stop(paste0('ERROR: The ', f, 'element of ObjFun_list is not a function!'))
+    for(f in seq_along(ObjFun)){
+      if(!is.function(ObjFun[[f]])){
+        stop(paste0('ERROR: The ', f, 'element of ObjFun is not a function!'))
       }
     }
   }
-  if(length(ObjFun_list) != length(control_params$param_ind_to_update_list)){
-    stop(paste0('ERROR: The element of ObjFun_list has a length of ',
-                length(ObjFun_list),
+  if(length(ObjFun) != length(control_params$param_ind_to_update_list)){
+    stop(paste0('ERROR: The element of ObjFun has a length of ',
+                length(ObjFun),
                 ' which is not the same length as the param_ind_to_update_list, ',
                 length(control_params$param_ind_to_update_list), '!'))
   }
@@ -118,8 +116,8 @@ optim_SQGDE = function(ObjFun_list,
   #       }
   #     }
   #   }
-  #   if(length(prior_function_list) != length(ObjFun_list)){
-  #     stop(paste0('ERROR: The prior_function_list is not the same length as ObjFun_list!'))
+  #   if(length(prior_function_list) != length(ObjFun)){
+  #     stop(paste0('ERROR: The prior_function_list is not the same length as ObjFun!'))
   #   }
   # }
 
@@ -131,12 +129,12 @@ optim_SQGDE = function(ObjFun_list,
   weights = array(NA,
                   dim = c(control_params$n_iters_per_particle,
                           control_params$n_particles,
-                          ObjFun_list |> length()))
+                          ObjFun |> length()))
   # TODO: for blocking
   # like_weights = array(NA,
   #                      dim = c(control_params$n_iters_per_particle,
   #                              control_params$n_particles,
-  #                              ObjFun_list |> length()))
+  #                              ObjFun |> length()))
 
   # cluster initialization
   if(!control_params$parallel_type=='none'){
@@ -172,7 +170,7 @@ optim_SQGDE = function(ObjFun_list,
     # pop initialization sequentially
     for(pmem_index in 1:control_params$n_particles){
       count = 0 # establish a count variable to avoid infinite run time
-      for(l in 1:length(ObjFun_list)){
+      for(l in 1:length(ObjFun)){
         weights[1,pmem_index,l] <- Inf
         while(weights[1,pmem_index,l]==Inf) {
 
@@ -182,10 +180,10 @@ optim_SQGDE = function(ObjFun_list,
                          rep(x = control_params$init_center, each = length(pmem_index)),
                          rep(x = control_params$init_sd, each = length(pmem_index)))
 
-          if(is.list(ObjFun_list)){
+          if(is.list(ObjFun)){
             # temp_weight <- 0
-            for(l in seq_along(ObjFun_list)){
-              weights[1,pmem_index,l] = ObjFun_list[[l]](particles[1, pmem_index, ], ...)
+            for(l in seq_along(ObjFun)){
+              weights[1,pmem_index,l] = ObjFun[[l]](particles[1, pmem_index, ], ...)
               # TODO: for blocking
               # like_weights[1,pmem_index,l] = weights[1,pmem_index,l] -
               # prior_function_list[[l]](particles[1, pmem_index, ], ...)
@@ -194,7 +192,7 @@ optim_SQGDE = function(ObjFun_list,
               }
             }
           }else{
-            stop("ObjFun_list is not iterable!")
+            stop("ObjFun is not iterable!")
           }
           count = count + 1
           if(count>control_params$give_up_init){
@@ -220,13 +218,13 @@ optim_SQGDE = function(ObjFun_list,
                      rep(x = control_params$init_center, each = length(pmem_index)),
                      rep(x = control_params$init_sd, each = length(pmem_index)))
       # parallel apply ObjFun on needed particles only
-      for(l in seq_along(ObjFun_list)){
+      for(l in seq_along(ObjFun)){
         weights[1, pmem_index, l] =
           parallel::parApply(cl = cl_use,
                              X = particles[1, pmem_index,] |>
                                matrix(nrow = control_params$n_particles),
                              MARGIN = c(1),
-                             FUN = ObjFun_list[[l]], ...)
+                             FUN = ObjFun[[l]], ...)
         # TODO: for blocking
         # like_weights[1,pmem_index,l] = weights[1,pmem_index,l] - parallel::parApply(cl = cl_use,
         # X = particles[1, pmem_index,],
@@ -255,14 +253,14 @@ optim_SQGDE = function(ObjFun_list,
   for(iter in 1:control_params$n_iter){
 
     if(control_params$parallel_type=='none'){
-      for(l in seq_along(ObjFun_list)){
+      for(l in seq_along(ObjFun)){
         # adapt particles using SQG DE sequentially
         temp=matrix(unlist(lapply(1:control_params$n_particles,
                                   SQG_DE_bin_1_pos,
                                   current_params = particles[iter_idx,,] |>
                                     matrix(nrow = control_params$n_particles),   # current parameter values (numeric matrix)
                                   current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
-                                  objFun = ObjFun_list[[l]],  # objective function (returns scalar)
+                                  objFun = ObjFun[[l]],  # objective function (returns scalar)
                                   scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
                                   # current_like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
                                   # prior_function = prior_function_list[[l]],
@@ -286,7 +284,7 @@ optim_SQGDE = function(ObjFun_list,
         #   temp[, c(FALSE, FALSE, control_params$param_ind_to_update_list[[l]])]
       }
     } else {
-      for(l in seq_along(ObjFun_list)){
+      for(l in seq_along(ObjFun)){
         # adapt particles using SQG DE in parallel
         temp=matrix(unlist(parallel::parLapplyLB(cl = cl_use,
                                                  X = 1:control_params$n_particles,
@@ -294,7 +292,7 @@ optim_SQGDE = function(ObjFun_list,
                                                  current_params = particles[iter_idx,,] |>
                                                    matrix(nrow = control_params$n_particles),   # current parameter values (numeric matrix)
                                                  current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
-                                                 objFun = ObjFun_list[[l]],  # objective function (returns scalar)
+                                                 objFun = ObjFun[[l]],  # objective function (returns scalar)
                                                  scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
                                                  # current_like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
                                                  # prior_function = prior_function_list[[l]],
@@ -329,14 +327,14 @@ optim_SQGDE = function(ObjFun_list,
     if(iter%%control_params$purify==0){
 
       if(control_params$parallel_type=='none'){
-        for(l in seq_along(ObjFun_list)){
+        for(l in seq_along(ObjFun)){
           temp=matrix(unlist(lapply(1:control_params$n_particles,
                                     Purify,
                                     current_params = particles[iter_idx,,] |>
                                       matrix(nrow = control_params$n_particles),   # current parameter values (numeric  matrix)
                                     params_update_ind_vec = control_params$param_ind_to_update_list[[l]],
                                     current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
-                                    objFun = ObjFun_list[[l]],  # objective function (returns scalar)
+                                    objFun = ObjFun[[l]],  # objective function (returns scalar)
                                     scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
                                     # current_like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
                                     # prior_function = prior_function_list[[l]],
@@ -353,7 +351,7 @@ optim_SQGDE = function(ObjFun_list,
           #   temp[, c(FALSE, FALSE, control_params$param_ind_to_update_list[[l]])]
         }
       } else {
-        for(l in seq_along(ObjFun_list)){
+        for(l in seq_along(ObjFun)){
           temp=matrix(unlist(parallel::parLapplyLB(cl_use,
                                                    1:control_params$n_particles,
                                                    Purify,
@@ -361,7 +359,7 @@ optim_SQGDE = function(ObjFun_list,
                                                      matrix(nrow = control_params$n_particles),   # current parameter values (numeric matrix)
                                                    params_update_ind_vec = control_params$param_ind_to_update_list[[l]],
                                                    current_weight = weights[iter_idx,,l],  # corresponding weights (numeric vector)
-                                                   objFun = ObjFun_list[[l]],  # objective function (returns scalar)
+                                                   objFun = ObjFun[[l]],  # objective function (returns scalar)
                                                    scheme = control_params$adapt_scheme, # TODO: later feature for conciseness
                                                    # current_like_weight = like_weights[iter_idx,,l], # TODO: later update to only update the prior density in blocked updating
                                                    # prior_function = prior_function_list[[l]],
