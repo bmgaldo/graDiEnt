@@ -1,34 +1,36 @@
 #' GetAlgoParams
-#' @description Get control parameters for optim_SQGDE function.
-#' @param n_params The number of parameters estimated/optimized, this integer value NEEDS to be specified.
-#' @param param_ind_to_update_list A list of vectors of indices or logical to update for each objective function in ObjFunction_list.
-#' @param resample_weight A control parameter that resamples the weight of the previous particle. Useful to determine the new density of part of the parameters when other parameters have changed since the last weight evaluation. Default is FALSE.
-#' Allows a subset of parameters to be updated while still using another subset of parameters.
-#' @param n_particles The number of particles (population size), 3*n_params is the default value.
-#' @param n_iter The number of iterations to run the algorithm, 1000 is default.
-#' @param n_diff The number of mutually exclusive vector pairs to stochastically approximate the gradient.
-#' @param crossover_rate A numeric scalar on the interval (0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution. The default value is 1.
-#' @param init_sd A positive scalar or n_params-dimensional numeric vector, determines the standard deviation of the Gaussian initialization distribution. The default value is 0.01.
-#' @param init_center A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution. The default value is 0.
-#' @param n_cores_use An integer specifying the number of cores used when using parallelization. The default value is 1.
-#' @param step_size A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).
-#' @param jitter_size A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.
-#' @param parallel_type A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.
-#' @param parallel_seed A positive integer to seed the seed in the parallel cluster. The default is "NULL".
-#' @param return_trace A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.
-#' @param thin A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.
-#' @param purify A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisy. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.
-#' @param adapt_scheme A string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is the default value.
-#' @param give_up_init An integer for how many failed initialization attempts before stopping the optimization routine. 100 is the default value.
-#' @param stop_check An integer for how often to check the convergence criterion. The default is 10 iterations.
-#' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
-#' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
-#' @param varlist A list of the variables and functions to export for parallelization.
-#' @param iter_message_freq A positive integer. Determines how frequently user iteration messages are set to the console. A value of 10 means each 10-th iteration a message is sent.
-#' @param save_int A positive integer to save the current R session within the optimization procedure. Negative values result in no saving. Default = -1.
-#' @param save_rds_string A sting to save the current R output of the function.
-
-#' @return A list of control parameters for the optim_SQGDE function.
+#'
+#' @description Generates a list of control parameters for the `optim_SQGDE` function, with defaults and validation checks for robustness and ease of use.
+#'
+#' @param n_params **(Required)** Integer. The number of parameters to be optimized. Must be a positive scalar.
+#' @param param_ind_to_update_list List of vectors indicating which parameter indices to update for each sub-function in `ObjFun`. For example, `param_ind_to_update_list[[L]]` specifies the subset of parameters updated for the `L`-th function. Default is `NULL`, which updates all parameters for all functions.
+#' @param resample_weight Logical. If `TRUE`, resamples weights for parameters based on changes since the last weight evaluation. Default is `FALSE`.
+#' @param n_particles Integer. Number of particles (population size). Default is `3 * n_params`.
+#' @param n_iter Integer. Number of iterations for the algorithm. Default is `1000`.
+#' @param n_diff Integer. Number of mutually exclusive vector pairs used to approximate the gradient. Default is `2`.
+#' @param crossover_rate Numeric in (0, 1]. Probability of updating a parameter during a crossover step. Default is `1`.
+#' @param init_sd Numeric. Standard deviation for the Gaussian initialization distribution. Can be a scalar or vector of length `n_params`. Default is `0.01`.
+#' @param init_center Numeric. Mean for the Gaussian initialization distribution. Can be a scalar or vector of length `n_params`. Default is `0`.
+#' @param n_cores_use Integer. Number of cores for parallelization. Default is `1`.
+#' @param step_size Numeric. Jump size for the differential evolution crossover step. Default is `2.38 / sqrt(2 * n_params)`.
+#' @param jitter_size Numeric. Adds uniform noise (`Uniform(-jitter_size, jitter_size)`) during the adaptation step. Default is `1e-6`. Set to `0` to disable.
+#' @param parallel_type Character. Type of parallelization: `'none'`, `'FORK'`, or `'PSOCK'`. Default is `'none'`. Note: `'FORK'` does not work on Windows.
+#' @param parallel_seed Integer. Seed for reproducibility in parallel clusters. Default is `NULL`.
+#' @param return_trace Logical. If `TRUE`, the function stores and returns particle trajectories for debugging or convergence assessment. Default is `FALSE`.
+#' @param thin Integer. Thinning interval for storing iterations. Default is `1`. Higher values reduce memory usage.
+#' @param purify Integer or `Inf`. Interval for recomputing particle weights. Useful for stochastic objective functions. Default is `Inf` (disabled).
+#' @param adapt_scheme Character. Adaptation scheme: `'rand'`, `'current'`, or `'best'`. Default is `'rand'`.
+#' @param give_up_init Integer. Number of failed initialization attempts before stopping. Default is `100`.
+#' @param stop_check Integer. Frequency (in iterations) of convergence checks. Default is `10`.
+#' @param stop_tol Numeric. Convergence tolerance for stopping criteria. Default is `1e-4`.
+#' @param converge_crit Character. Convergence metric: `'stdev'` (standard deviation of weights) or `'percent'` (percent improvement in median weight). Default is `'stdev'`.
+#' @param varlist List. Variables and functions to export during parallelization.
+#' @param iter_message_freq Integer. Frequency (in iterations) of console messages. Default is `10`.
+#' @param save_int Integer. Interval (in iterations) for saving progress. Negative values disable saving. Default is `-1`.
+#' @param save_rds_string Character. File name for saving function output if `save_int > 0`. Default is `"SQGDE_DEFAULT_IMAGE.rds"`.
+#' @param outfile_string Character. File name for console output logging. Default is `"console_output.txt"`.
+#'
+#' @return A list of validated control parameters for the `optim_SQGDE` function.
 #' @export
 GetAlgoParams = function(n_params,
                          param_ind_to_update_list = NULL,

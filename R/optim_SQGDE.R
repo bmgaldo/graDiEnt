@@ -1,18 +1,25 @@
 #' optim_SQGDE
 #'
-#' @description  Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE;
-#' Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x).
-#' To maximize a function f(x), simply pass g(x)=-f(x) to ObjFun argument.
-#' @param ObjFun A list or single function that is a scalar-returning
-#' function(s) to minimize whose first argument is a real-valued
-#' n_params-dimensional vector. A list of functions enables "blocking", where
-#' the list of functions are "sub-iterated" through so that only a subset of
-#' parameters are updated at one sub-iteration.
-#' @param control_params control parameters for SQG-DE algo. see
-#' \code{\link{GetAlgoParams}} function documentation for more details. The only
-#' argument you NEED to pass here is n_params.
-#' @param ... additional arguments to pass ObjFun.
-#' @return list containing solution and it's corresponding weight (i.e. f(solution)).
+#' @description Uses Stochastic Quasi-Gradient Differential Evolution (SQG-DE;
+#' Sala, Baldanzini, and Pierini, 2018) to minimize a specified objective function `f(x)`.
+#' To maximize a function, pass `g(x) = -f(x)` as the `ObjFun` argument.
+#'
+#' @param ObjFun A scalar-returning function or a list of functions to minimize. Each function
+#' should accept a real-valued vector of length `n_params` as input. When providing a list of functions,
+#' block updating is enabled, iterating through each function to update only a subset of parameters conditional (see `param_ind_to_update_list` in \code{\link{GetAlgoParams}}).
+#'
+#' @param control_params A list of control parameters for the SQG-DE algorithm. The primary required
+#' parameter is `n_params`. For more details, see the documentation of \code{\link{GetAlgoParams}}.
+#'
+#' @param ... Additional arguments to be passed to `ObjFun`.
+#'
+#' @return A list containing:
+#' - `solution`: The best solution found by the algorithm.
+#' - `weight`: The corresponding weight (i.e., `f(solution)`).
+#' - `particles_trace` (optional): Trace of particle positions over iterations (if `return_trace = TRUE`).
+#' - `weights_trace` (optional): Trace of weights over iterations (if `return_trace = TRUE`).
+#' - `converged`: Logical, indicating whether the convergence criterion was met.
+#'
 #' @export
 #' @md
 #' @examples
@@ -20,54 +27,48 @@
 #' # Maximum Likelihood Example
 #' ##############
 #'
-#' # simulate from model
-#' dataExample=matrix(rnorm(1000,c(-1,1,0,1),c(1,1,1,1)),ncol=4,byrow = TRUE)
+#' # Simulate data
+#' dataExample <- matrix(rnorm(1000, c(-1, 1, 0, 1), c(1, 1, 1, 1)), ncol = 4, byrow = TRUE)
 #'
-#' # list parameter names
-#' param_names_example=c("mu_1","mu_2","mu_3","mu_4")
+#' # Define parameter names
+#' param_names_example <- c("mu_1", "mu_2", "mu_3", "mu_4")
 #'
-#' # negative log likelihood
-#' ExampleObjFun=function(x,data,param_names){
-#'   out=0
-#'
+#' # Define negative log-likelihood function
+#' ExampleObjFun <- function(x, data, param_names) {
 #'   names(x) <- param_names
-#'
-#'   # log likelihoods
-#'   out=out+sum(dnorm(data[,1],x["mu_1"],sd=1,log=TRUE))
-#'   out=out+sum(dnorm(data[,2],x["mu_2"],sd=1,log=TRUE))
-#'   out=out+sum(dnorm(data[,3],x["mu_3"],sd=1,log=TRUE))
-#'   out=out+sum(dnorm(data[,4],x["mu_4"],sd=1,log=TRUE))
-#'
-#'   return(out*-1)
+#'   -sum(dnorm(data[, 1], x["mu_1"], sd = 1, log = TRUE) +
+#'        dnorm(data[, 2], x["mu_2"], sd = 1, log = TRUE) +
+#'        dnorm(data[, 3], x["mu_3"], sd = 1, log = TRUE) +
+#'        dnorm(data[, 4], x["mu_4"], sd = 1, log = TRUE))
 #' }
 #'
-#' ########################
-#' # run optimization
-#' out <- optim_SQGDE(ObjFun = ExampleObjFun,
-#'                    control_params = GetAlgoParams(n_params = length(param_names_example),
-#'                                              n_iter = 250,
-#'                                               n_particles = 12,
-#'                                               n_diff = 2,
-#'                                               return_trace = TRUE),
-#'                    data = dataExample,
-#'                    param_names = param_names_example)
-#' old_par <- par() # save graphic state for user
-#' # plot particle trajectory
+#' # Run optimization
+#' out <- optim_SQGDE(
+#'   ObjFun = ExampleObjFun,
+#'   control_params = GetAlgoParams(
+#'     n_params = length(param_names_example),
+#'     n_iter = 250,
+#'     n_particles = 12,
+#'     n_diff = 2,
+#'     return_trace = TRUE
+#'   ),
+#'   data = dataExample,
+#'   param_names = param_names_example
+#' )
 #'
-#' par(mfrow=c(2,2))
-#' matplot(out$particles_trace[,,1],type='l')
-#' matplot(out$particles_trace[,,2],type='l')
-#' matplot(out$particles_trace[,,3],type='l')
-#' matplot(out$particles_trace[,,4],type='l')
+#' # Plot particle trajectories
+#' par(mfrow = c(2, 2))
+#' matplot(out$particles_trace[, , 1], type = 'l')
+#' matplot(out$particles_trace[, , 2], type = 'l')
+#' matplot(out$particles_trace[, , 3], type = 'l')
+#' matplot(out$particles_trace[, , 4], type = 'l')
 #'
-#' #SQG DE solution
+#' # SQG-DE solution
 #' out$solution
 #'
-#' #analytic solution
+#' # Analytical solution
 #' apply(dataExample, 2, mean)
-#'
-#' par(old_par) # restore user graphic state
-#'
+
 
 optim_SQGDE = function(ObjFun,
                        # prior_function_list = NULL,
