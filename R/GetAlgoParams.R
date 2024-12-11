@@ -108,8 +108,8 @@ GetAlgoParams = function(n_params,
            numeric vector if not a list')
     }
   }
-  # if(length(param_ind_to_update_list) != length(ObjFun_list)){
-  #   stop('ERROR: param_ind_to_update_list must be the same length as ObjFun_list')
+  # if(length(param_ind_to_update_list) != length(ObjFun)){
+  #   stop('ERROR: param_ind_to_update_list must be the same length as ObjFun')
   # }
 
   # resample_weight
