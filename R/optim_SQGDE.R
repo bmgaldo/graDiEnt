@@ -6,7 +6,7 @@
 #'
 #' @param ObjFun A scalar-returning function or a list of functions to minimize. Each function
 #' should accept a real-valued vector of length `n_params` as input. When providing a list of functions,
-#' block updating is enabled, iterating through each function to update only a subset of parameters conditional.
+#' block updating is enabled, iterating through each function to update only a subset of parameters conditional (see `param_ind_to_update_list` in \code{\link{GetAlgoParams}}).
 #'
 #' @param control_params A list of control parameters for the SQG-DE algorithm. The primary required
 #' parameter is `n_params`. For more details, see the documentation of \code{\link{GetAlgoParams}}.
