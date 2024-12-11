@@ -55,6 +55,8 @@ grad_approx_fn <-
 
       # sum the approximate gradient vectors
       # protect against divde by zero
+      # Ensure that the grad is defined
+      # TODO: check the limit of this expression
       if(!(all(vec_diff_temp == 0)| weight_diff_temp == 0)){
         grad_approx = grad_approx + vec_diff_temp*(weight_diff_temp/sqrt(sum(vec_diff_temp^2)))
       }
@@ -64,12 +66,16 @@ grad_approx_fn <-
     psi_num = sqrt(sum(vec_diff_sum^2))*(1/n_diff)
     psi_den = sqrt(sum(grad_approx^2))
     psi = psi_num/psi_den
+    # Ensure that the step size is defined
+    # TODO: check the limit of this expression
     if(is.finite(psi_num) & psi_num == 0){
       psi = 0
     }
+    # ensure that the step size down the grad in finite
     if(!is.finite(psi)){
       stop("ERROR: update is not finite!")
     }
+    # return the step size and approx grad
     return(list("psi" = psi,
                 "grad_approx" = grad_approx))
   }
@@ -106,23 +112,27 @@ SQG_DE_bin_1_pos=function(pmem_index,
   # get statistics about particle
   params_use = current_params[pmem_index,]
 
-  # resample weight
+  # get weight to compare in greedy rule
   if(resample_weight){
     # TODO: later update to only update the prior density in blocked updating
     # if(!is.null(prior_function) & !is.null(current_like_weight)){
     #   like_weight_use = current_like_weight[pmem_index]
     #   if(all(is.finite(params_use)))weight_use = like_weight_use + prior_function(params_use, ...)
     # }else{
+    # resample weight
     if(all(is.finite(params_use)))weight_use = objFun(params_use,...)
     # }
     if(!is.finite(weight_use))weight_use = Inf
     current_weight[pmem_index] <- weight_use
   }else{
+    # just use the last weight
     weight_use = current_weight[pmem_index]
   }
   best_pmem_index = which.min(current_weight) # "best" specific
+  # Determine how many parameters are for each particle
   len_param_use = length(params_use)
 
+  # Determine which/how many parameters are updated in this block
   params_update = current_params[pmem_index, params_update_ind_vec]
   len_param_update = length(params_update)
 
@@ -149,18 +159,21 @@ SQG_DE_bin_1_pos=function(pmem_index,
   # indices of parameters to be updated
   param_indices = seq(1,len_param_update,by=1)[as.logical(param_idices_bool)]
 
-  #
+  # calculate the approx grad from two parent particles
   grad_approx_list <- grad_approx_fn(param_indices,
                  n_diff,
                  current_params,
                  parent_indices,
                  current_weight)
+  # get the approx grad
   grad_approx <- grad_approx_list$grad_approx
+  # get the step size to go down the grad
   psi <- grad_approx_list$psi
 
 
+  # Ensure that the grad and step down the gradient is finite and down the grad
   if(all(is.finite(grad_approx)) & is.finite(psi) & (psi>=0)){
-    # mate parents for proposal
+    # the selected starting position of the particle before SQGDE jump
     if(scheme == "best"){
       update_index <- best_pmem_index
     }else if (scheme == "current"){
@@ -168,17 +181,24 @@ SQG_DE_bin_1_pos=function(pmem_index,
     }else {
       update_index <- parent_indices[2*n_diff+1]
     }
+
+    # proposal: update the partcle by starting at the selected particles
+    # adding a step down the approx grad
+    # and adding unif noise
     params_update[param_indices] = current_params[update_index,param_indices] -
       step_size*psi*(grad_approx) + # move in the direction against the gradient
       stats::runif(length(param_indices),-jitter_size,jitter_size) # a little noise
   }
+  # update the parameters in this block
   params_use[params_update_ind_vec] = params_update
+  # ensure that parameters are the properly sized matrix
   params_use = matrix(params_use,1,len_param_use)
 
   weight_proposal = NA
-  # get weight
+  # get weight, ensure that it is finite, else assign worst value
   if(all(is.finite(params_use)))weight_proposal = objFun(params_use,...)
   if(is.na(weight_proposal))weight_proposal = Inf
+
 
   # # TODO: later update to only update the prior density in blocked updating
   # if(!is.null(prior_function) & !is.null(current_like_weight)){
@@ -195,10 +215,14 @@ SQG_DE_bin_1_pos=function(pmem_index,
   if(weight_proposal < weight_use) {
     current_params[pmem_index,] = params_use
     current_weight[pmem_index] = weight_proposal
+    # TODO: for blocking feature
     # current_like_weight[pmem_index,] = like_weight_proposal
   }
 
-  # return(c(current_weight[pmem_index],current_like_weight[pmem_index,],current_params[pmem_index,]))
+  # TODO: for blocking feature
+  # return(c(current_weight[pmem_index],
+  # current_like_weight[pmem_index,],
+  # current_params[pmem_index,]))
   return(c(current_weight[pmem_index],current_params[pmem_index,]))
 
 }
