@@ -76,21 +76,25 @@ optim_SQGDE = function(ObjFun,
 
   # ObjFun
   ### catch errors
+  # Ensure that there is an objective function
   if(length(ObjFun) == 1){
     if(!is.function(ObjFun)){
       stop('ERROR: ObjFun is not A FUNCTION or list of functions!')
     }
     ObjFun <- list(ObjFun)
   }else{
+    # If the ObjFun is a list
     if(!is.list(ObjFun)){
       stop('ERROR: ObjFun is not a function or LIST of functions!')
     }
+    # Ensure each element in the list is a function
     for(f in seq_along(ObjFun)){
       if(!is.function(ObjFun[[f]])){
         stop(paste0('ERROR: The ', f, 'element of ObjFun is not a function!'))
       }
     }
   }
+  # Ensure ObjFun has a defined set of parameters in param_ind_to_update_list
   if(length(ObjFun) != length(control_params$param_ind_to_update_list)){
     stop(paste0('ERROR: The element of ObjFun has a length of ',
                 length(ObjFun),
@@ -98,6 +102,7 @@ optim_SQGDE = function(ObjFun,
                 length(control_params$param_ind_to_update_list), '!'))
   }
 
+  # Rough in prior_function_list for later feature
   # prior_function_list
   ### catch errors
   # if(!is.null(prior_function_list)){
@@ -137,12 +142,19 @@ optim_SQGDE = function(ObjFun,
   #                              ObjFun |> length()))
 
   # cluster initialization
+    # specify the type
+    # size of cluster
+    # output file
+    # parallel seed
+    # needed variables and functions
   if(!control_params$parallel_type=='none'){
     message(paste0("initalizing ",
                    control_params$parallel_type, " cluser with ",
                    control_params$n_cores_use, " cores"))
-
     doParallel::registerDoParallel(control_params$n_cores_use)
+    # specify the type
+    # size of cluster
+    # and output file
     if(control_params$parallel_type == "PSOCK"){
       cl_use =
         parallel::makePSOCKcluster(
@@ -154,9 +166,11 @@ optim_SQGDE = function(ObjFun,
                                   outfile = control_params$outfile)
     }
 
+    # specify a parallel seed for the cluster
     if(!is.null(control_params$parallel_seed)){
       parallel::clusterSetRNGStream(cl_use, control_params$parallel_seed)
     }
+    # export functions and variables to the cluster
     parallel::clusterExport(cl_use,
                             varlist = control_params$varlist)
     parallel::clusterExport(cl_use,
@@ -167,22 +181,22 @@ optim_SQGDE = function(ObjFun,
   # pop initialization
   message('initalizing population...')
   if(control_params$parallel_type=='none'){
-    # pop initialization sequentially
+    # pop initialization sequentially for each particle
     for(pmem_index in 1:control_params$n_particles){
       count = 0 # establish a count variable to avoid infinite run time
-      for(l in 1:length(ObjFun)){
-        weights[1,pmem_index,l] <- Inf
+      for(l in 1:length(ObjFun)){ # for every l element of ObjFun
+        weights[1,pmem_index,l] <- Inf # set the weight to the worst value
         while(weights[1,pmem_index,l]==Inf) {
-
           # only sample the particles left to init
           particles[1, pmem_index, ] =
             stats::rnorm(control_params$n_params * length(pmem_index),
                          rep(x = control_params$init_center, each = length(pmem_index)),
                          rep(x = control_params$init_sd, each = length(pmem_index)))
 
+          # iterate throught the list of objective functions
           if(is.list(ObjFun)){
-            # temp_weight <- 0
             for(l in seq_along(ObjFun)){
+              # assign weight for particle from function in ObjFun
               weights[1,pmem_index,l] = ObjFun[[l]](particles[1, pmem_index, ], ...)
               # TODO: for blocking
               # like_weights[1,pmem_index,l] = weights[1,pmem_index,l] -
@@ -218,7 +232,8 @@ optim_SQGDE = function(ObjFun,
                      rep(x = control_params$init_center, each = length(pmem_index)),
                      rep(x = control_params$init_sd, each = length(pmem_index)))
       # parallel apply ObjFun on needed particles only
-      for(l in seq_along(ObjFun)){
+      for(l in seq_along(ObjFun)){ # for every l function in ObjFun
+        # determine the weight of the particle
         weights[1, pmem_index, l] =
           parallel::parApply(cl = cl_use,
                              X = particles[1, pmem_index,] |>
@@ -248,12 +263,12 @@ optim_SQGDE = function(ObjFun,
 
   message("running SQG-DE...")
 
-  iter_idx=1
-  converge_test_passed=FALSE
+  iter_idx=1 # initialize iteration number
+  converge_test_passed=FALSE # initialize convergence test flag
   for(iter in 1:control_params$n_iter){
 
     if(control_params$parallel_type=='none'){
-      for(l in seq_along(ObjFun)){
+      for(l in seq_along(ObjFun)){ # for each l objective function in ObjFun
         # adapt particles using SQG DE sequentially
         temp=matrix(unlist(lapply(1:control_params$n_particles,
                                   SQG_DE_bin_1_pos,
@@ -284,7 +299,7 @@ optim_SQGDE = function(ObjFun,
         #   temp[, c(FALSE, FALSE, control_params$param_ind_to_update_list[[l]])]
       }
     } else {
-      for(l in seq_along(ObjFun)){
+      for(l in seq_along(ObjFun)){ # for each l objective function in ObjFun
         # adapt particles using SQG DE in parallel
         temp=matrix(unlist(parallel::parLapplyLB(cl = cl_use,
                                                  X = 1:control_params$n_particles,
@@ -324,10 +339,10 @@ optim_SQGDE = function(ObjFun,
     #####################
     ####### purify
     #####################
-    if(iter%%control_params$purify==0){
+    if(iter%%control_params$purify==0){ # check iff this is a purification step
 
       if(control_params$parallel_type=='none'){
-        for(l in seq_along(ObjFun)){
+        for(l in seq_along(ObjFun)){ # for each l objective function in ObjFun
           temp=matrix(unlist(lapply(1:control_params$n_particles,
                                     Purify,
                                     current_params = particles[iter_idx,,] |>
@@ -351,7 +366,7 @@ optim_SQGDE = function(ObjFun,
           #   temp[, c(FALSE, FALSE, control_params$param_ind_to_update_list[[l]])]
         }
       } else {
-        for(l in seq_along(ObjFun)){
+        for(l in seq_along(ObjFun)){ # for each l objective function in ObjFun
           temp=matrix(unlist(parallel::parLapplyLB(cl_use,
                                                    1:control_params$n_particles,
                                                    Purify,
@@ -388,6 +403,7 @@ optim_SQGDE = function(ObjFun,
     if(iter %% control_params$stop_check==0){
       # assign convergence method
       if(control_params$converge_crit=='percent'){
+        # if there are mutliple blocks, check that all blocks have met the criteria
         if(length(weights[1,1,]) > 1){
           percent_improve=(1-((weights[iter_idx,,, drop = FALSE] |> apply(MARGIN = 1, stats::median)))/
                              (weights[iter_idx-control_params$stop_check+1,,, drop = FALSE] |> apply(1, stats::median)))*100
@@ -397,6 +413,7 @@ optim_SQGDE = function(ObjFun,
             break
           }
         }else{
+          # check particles have met the criterion
           percent_improve=(1-(weights[iter_idx,,1] |> stats::median())/
                              (weights[iter_idx-control_params$stop_check+1,,1] |> stats::median()))*100
           if(percent_improve<control_params$stop_tol){
@@ -407,6 +424,7 @@ optim_SQGDE = function(ObjFun,
         }
       }
       if(control_params$converge_crit=='stdev'){
+        # if there are mutliple blocks, check that all blocks have met the criteria
         if(length(weights[1,1,]) > 1){
           weight_sd=(weights[iter_idx:(iter_idx-control_params$stop_check+1),,, drop = FALSE]) |>
             apply(1, stats::sd)
@@ -416,6 +434,7 @@ optim_SQGDE = function(ObjFun,
             break
           }
         }else{
+          # check particles have met the criterion
           weight_sd=(weights[iter_idx:(iter_idx-control_params$stop_check+1),,1]) |>
             stats::sd()
           if(weight_sd<control_params$stop_tol){
@@ -427,7 +446,9 @@ optim_SQGDE = function(ObjFun,
       }
     }
 
-
+    # update a list of the history of the particles
+    # that is accessible to the Global env
+    # for recovery upon interrupting the optimizer
     SQGDE_out <<- list('particles_trace' = particles,
                        'weights_trace' = weights,
                        'converged' = converge_test_passed)
@@ -437,9 +458,11 @@ optim_SQGDE = function(ObjFun,
       message(paste0('iter ', iter, '/', control_params$n_iter))
     }
     if(iter%%control_params$thin==0 & !(iter==control_params$n_iter)){
+      # do not save the results to the particle containers if this iter is thinned
       iter_idx = iter_idx+1
     }
     if(control_params$save_int > 0 & iter%% control_params$save_int == 0){
+      # update an RDS object of the history of the particles
       message(paste0('saving ouput on iter ', iter, '/', control_params$n_iter))
       saveRDS(SQGDE_out, file = control_params$save_rds_string)
       message(paste0('ouput saved'))
@@ -450,9 +473,13 @@ optim_SQGDE = function(ObjFun,
   if(!control_params$parallel_type=='none'){
     parallel::stopCluster(cl = cl_use)
   }
+  # get the function minimum
+  # index
   minIdx = which.min(weights[iter_idx,,, drop = FALSE] |> apply(1, sum))
+  # value
   minEst = particles[iter_idx, minIdx, ]
 
+  # return values to user
   if(control_params$return_trace==TRUE){
     return(list('solution' = minEst,
                 'weight' = weights[iter_idx, minIdx,],
