@@ -1,3 +1,38 @@
+#' grad_approx_fn
+#'
+#'
+#' Computes an approximate gradient of a function using finite differences.
+#'
+#' @param param_indices A vector of indices specifying the parameters for which to compute the gradient.
+#' @param n_diff The number of finite difference pairs to use.
+#' @param current_params A matrix containing the current parameter values.
+#' @param parent_indices A vector of indices specifying the parent indices for each finite difference pair.
+#' @param current_weight A vector containing the current weight values.
+#' @noRd
+#'
+#' @return A list containing:
+#'   - `psi`: A normalization factor for algorithm self-scaling.
+#'   - `grad_approx`: A vector of approximate gradient values.
+#'
+#' @details
+#' This function calculates an approximate gradient by summing the differences in function values divided by the Euclidean norm of the parameter differences.
+#' The normalization factor `psi` is computed to ensure proper scaling of the gradient.
+#'
+#' @note
+#' The function includes a check to prevent division by zero and non-finite values.
+#'
+#' @examples
+#' # NOT RUN
+#' # Example usage (replace with actual data)
+#' param_indices <- c(1, 2)
+#' n_diff <- 10
+#' current_params <- matrix(runif(20), nrow = 10, ncol = 2)
+#' parent_indices <- 1:20
+#' current_weight <- runif(20)
+#'
+#' result <- grad_approx_fn(param_indices, n_diff, current_params, parent_indices, current_weight)
+#' print(result$psi)
+#' print(result$grad_approx)
 grad_approx_fn <-
   function(param_indices,
            n_diff,
