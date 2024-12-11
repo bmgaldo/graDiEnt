@@ -24,7 +24,7 @@
 #' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @param varlist A list of the variables and functions to export for parallelization.
-#' @param print_int A positive integer to print how many iterations have occurred
+#' @param iter_message_freq A positive integer. Determines how frequently user iteration messages are set to the console. A value of 10 means each 10-th iteration a message is sent.
 #' @param save_int A positive integer to save the current R session within the optimization procedure. Negative values result in no saving. Default = -1.
 #' @param save_rds_string A sting to save the current R output of the function.
 
@@ -53,7 +53,7 @@ GetAlgoParams = function(n_params,
                          stop_tol = 1e-4,
                          converge_crit = 'stdev',
                          varlist = NULL,
-                         print_int = 100,
+                         iter_message_freq = 100,
                          save_int = -1,
                          save_rds_string = "SQGDE_DEFAULT_IMAGE.rds"){
   # n_params
@@ -108,8 +108,8 @@ GetAlgoParams = function(n_params,
            numeric vector if not a list')
     }
   }
-  # if(length(param_ind_to_update_list) != length(ObjFun_list)){
-  #   stop('ERROR: param_ind_to_update_list must be the same length as ObjFun_list')
+  # if(length(param_ind_to_update_list) != length(ObjFun)){
+  #   stop('ERROR: param_ind_to_update_list must be the same length as ObjFun')
   # }
 
   # resample_weight
@@ -362,16 +362,16 @@ GetAlgoParams = function(n_params,
   }
 
   ##################
-  # print_int
-  if(is.null(print_int)){
-    print_int = 100
+  # iter_message_freq
+  if(is.null(iter_message_freq)){
+    iter_message_freq = 100
   }
   ### catch errors
-  print_int = as.integer(print_int)
-  if(any(!is.finite(print_int))){
-    stop('ERROR: print_int is not finite')
-  } else if( print_int<1 | length(print_int)>1){
-    stop('ERROR: print_int must be a postitive integer scalar, and atleast 1')
+  iter_message_freq = as.integer(iter_message_freq)
+  if(any(!is.finite(iter_message_freq))){
+    stop('ERROR: iter_message_freq is not finite')
+  } else if( iter_message_freq<1 | length(iter_message_freq)>1){
+    stop('ERROR: iter_message_freq must be a postitive integer scalar, and atleast 1')
   }
 
   ##################
@@ -458,7 +458,7 @@ GetAlgoParams = function(n_params,
              'stop_check' = stop_check,
              'converge_crit' = converge_crit,
              'varlist' = varlist,
-             'print_int' = print_int,
+             'iter_message_freq' = iter_message_freq,
              'parallel_seed' = parallel_seed,
              'save_int' = save_int,
              'save_rds_string' = save_rds_string,
