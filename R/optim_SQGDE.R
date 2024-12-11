@@ -433,7 +433,7 @@ optim_SQGDE = function(ObjFun,
                        'converged' = converge_test_passed)
 
 
-    if(iter%% control_params$print_int == 0){
+    if(iter%% control_params$iter_message_freq == 0){
       message(paste0('iter ', iter, '/', control_params$n_iter))
     }
     if(iter%%control_params$thin==0 & !(iter==control_params$n_iter)){
