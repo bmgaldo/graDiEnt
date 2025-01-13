@@ -2,3 +2,4 @@
 
 export(GetAlgoParams)
 export(optim_SQGDE)
+export(update_optim_SQGDE)
