@@ -57,7 +57,8 @@ GetAlgoParams = function(n_params,
                          varlist = NULL,
                          iter_message_freq = 100,
                          save_int = -1,
-                         save_rds_string = "SQGDE_DEFAULT_IMAGE.rds"){
+                         save_rds_string = "SQGDE_DEFAULT_IMAGE.rds",
+                         outfile_string = NULL){
   # n_params
   ### catch errors
   if(length(n_params) != 1){
@@ -423,18 +424,20 @@ GetAlgoParams = function(n_params,
 
   ##################
   # outfile_string
-  if(!is.character(outfile_string)){
+  if(!is.null(outfile_string)){
+    if(!is.character(outfile_string)){
       stop('ERROR: outfile_string must be a single CHARACTER sting that ends in .txt')
-  }
-  if(length(outfile_string) != 1){
+    }
+    if(length(outfile_string) != 1){
       stop('ERROR: outfile_string must be a SINGLE character sting that ends in .txt')
-  }
-  if(substring(text = outfile_string,
+    }
+    if(substring(text = outfile_string,
                  nchar(outfile_string)-3,
                  nchar(outfile_string)) != ".txt"){
       warning('Warning: outfile_string must be a character sting that ends in .txt.
               Adding .txt to supplied string.')
       outfile_string <- paste0(outfile_string, ".txt")
+    }
   }
 
   out = list('n_params' = n_params,

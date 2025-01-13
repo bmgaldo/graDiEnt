@@ -28,68 +28,70 @@ GetAlgoParams(
   stop_tol = 1e-04,
   converge_crit = "stdev",
   varlist = NULL,
-  print_int = 100,
+  iter_message_freq = 100,
   save_int = -1,
-  save_rds_string = "SQGDE_DEFAULT_IMAGE.rds"
+  save_rds_string = "SQGDE_DEFAULT_IMAGE.rds",
+  outfile_string = NULL
 )
 }
 \arguments{
-\item{n_params}{The number of parameters estimated/optimized, this integer value NEEDS to be specified.}
+\item{n_params}{\strong{(Required)} Integer. The number of parameters to be optimized. Must be a positive scalar.}
 
-\item{param_ind_to_update_list}{A list of vectors of indices or logical to update for each objective function in ObjFunction_list.}
+\item{param_ind_to_update_list}{List of vectors indicating which parameter indices to update for each sub-function in \code{ObjFun}. For example, \code{param_ind_to_update_list[[L]]} specifies the subset of parameters updated for the \code{L}-th function. Default is \code{NULL}, which updates all parameters for all functions.}
 
-\item{resample_weight}{A control parameter that resamples the weight of the previous particle. Useful to determine the new density of part of the parameters when other parameters have changed since the last weight evaluation. Default is FALSE.
-Allows a subset of parameters to be updated while still using another subset of parameters.}
+\item{resample_weight}{Logical. If \code{TRUE}, resamples weights for parameters based on changes since the last weight evaluation. Default is \code{FALSE}.}
 
-\item{n_particles}{The number of particles (population size), 3*n_params is the default value.}
+\item{n_particles}{Integer. Number of particles (population size). Default is \code{3 * n_params}.}
 
-\item{n_diff}{The number of mutually exclusive vector pairs to stochastically approximate the gradient.}
+\item{n_diff}{Integer. Number of mutually exclusive vector pairs used to approximate the gradient. Default is \code{2}.}
 
-\item{n_iter}{The number of iterations to run the algorithm, 1000 is default.}
+\item{n_iter}{Integer. Number of iterations for the algorithm. Default is \code{1000}.}
 
-\item{init_sd}{A positive scalar or n_params-dimensional numeric vector, determines the standard deviation of the Gaussian initialization distribution. The default value is 0.01.}
+\item{init_sd}{Numeric. Standard deviation for the Gaussian initialization distribution. Can be a scalar or vector of length \code{n_params}. Default is \code{0.01}.}
 
-\item{init_center}{A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution. The default value is 0.}
+\item{init_center}{Numeric. Mean for the Gaussian initialization distribution. Can be a scalar or vector of length \code{n_params}. Default is \code{0}.}
 
-\item{n_cores_use}{An integer specifying the number of cores used when using parallelization. The default value is 1.}
+\item{n_cores_use}{Integer. Number of cores for parallelization. Default is \code{1}.}
 
-\item{step_size}{A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).}
+\item{step_size}{Numeric. Jump size for the differential evolution crossover step. Default is \code{2.38 / sqrt(2 * n_params)}.}
 
-\item{jitter_size}{A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.}
+\item{jitter_size}{Numeric. Adds uniform noise (\code{Uniform(-jitter_size, jitter_size)}) during the adaptation step. Default is \code{1e-6}. Set to \code{0} to disable.}
 
-\item{crossover_rate}{A numeric scalar on the interval (0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution. The default value is 1.}
+\item{crossover_rate}{Numeric in (0, 1]. Probability of updating a parameter during a crossover step. Default is \code{1}.}
 
-\item{parallel_type}{A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.}
+\item{parallel_type}{Character. Type of parallelization: \code{'none'}, \code{'FORK'}, or \code{'PSOCK'}. Default is \code{'none'}. Note: \code{'FORK'} does not work on Windows.}
 
-\item{parallel_seed}{A positive integer to seed the seed in the parallel cluster. The default is "NULL".}
+\item{parallel_seed}{Integer. Seed for reproducibility in parallel clusters. Default is \code{NULL}.}
 
-\item{return_trace}{A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.}
+\item{return_trace}{Logical. If \code{TRUE}, the function stores and returns particle trajectories for debugging or convergence assessment. Default is \code{FALSE}.}
 
-\item{thin}{A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.}
+\item{thin}{Integer. Thinning interval for storing iterations. Default is \code{1}. Higher values reduce memory usage.}
 
-\item{purify}{A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisy. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.}
+\item{purify}{Integer or \code{Inf}. Interval for recomputing particle weights. Useful for stochastic objective functions. Default is \code{Inf} (disabled).}
 
-\item{adapt_scheme}{A string that must be 'rand','current', or 'best' that determines the DE adaption scheme/strategy. 'rand' uses rand/1/bin DE-like scheme where a random particle and the particle-based quasi-gradient approximation are used to generate proposal updates for a given particle. 'current' uses current/1/bin, and 'best' uses best/1/bin which follow an analogous adaption scheme to rand. 'rand' is the default value.}
+\item{adapt_scheme}{Character. Adaptation scheme: \code{'rand'}, \code{'current'}, or \code{'best'}. Default is \code{'rand'}.}
 
-\item{give_up_init}{An integer for how many failed initialization attempts before stopping the optimization routine. 100 is the default value.}
+\item{give_up_init}{Integer. Number of failed initialization attempts before stopping. Default is \code{100}.}
 
-\item{stop_check}{An integer for how often to check the convergence criterion. The default is 10 iterations.}
+\item{stop_check}{Integer. Frequency (in iterations) of convergence checks. Default is \code{10}.}
 
-\item{stop_tol}{A convergence metric must be less than value to be labeled as converged. The default is 1e-4.}
+\item{stop_tol}{Numeric. Convergence tolerance for stopping criteria. Default is \code{1e-4}.}
 
-\item{converge_crit}{A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.}
+\item{converge_crit}{Character. Convergence metric: \code{'stdev'} (standard deviation of weights) or \code{'percent'} (percent improvement in median weight). Default is \code{'stdev'}.}
 
-\item{varlist}{A list of the variables and functions to export for parallelization.}
+\item{varlist}{List. Variables and functions to export during parallelization.}
 
-\item{print_int}{A positive integer to print how many iterations have occurred}
+\item{iter_message_freq}{Integer. Frequency (in iterations) of console messages. Default is \code{10}.}
 
-\item{save_int}{A positive integer to save the current R session within the optimization procedure. Negative values result in no saving. Default = -1.}
+\item{save_int}{Integer. Interval (in iterations) for saving progress. Negative values disable saving. Default is \code{-1}.}
 
-\item{save_rds_string}{A sting to save the current R output of the function.}
+\item{save_rds_string}{Character. File name for saving function output if \code{save_int > 0}. Default is \code{"SQGDE_DEFAULT_IMAGE.rds"}.}
+
+\item{outfile_string}{Character. File name for console output logging. Default is \code{"console_output.txt"}.}
 }
 \value{
-A list of control parameters for the optim_SQGDE function.
+A list of validated control parameters for the \code{optim_SQGDE} function.
 }
 \description{
-Get control parameters for optim_SQGDE function.
+Generates a list of control parameters for the \code{optim_SQGDE} function, with defaults and validation checks for robustness and ease of use.
 }

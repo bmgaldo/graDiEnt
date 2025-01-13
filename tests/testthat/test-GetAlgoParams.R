@@ -5,7 +5,7 @@ n_params <- 1
 # Test basic functionality with valid arguments
 test_that("GetAlgoParams works with valid arguments", {
   params <- GetAlgoParams(n_params = 5)
-  expect_equal(length(params), 27)  # Check all arguments are returned
+  expect_equal(length(params), 28)  # Check all arguments are returned
   expect_equal(params$n_params, 5)
   expect_equal(params$n_particles, 15)  # Default value
 })
@@ -605,7 +605,7 @@ test_that("outfile_string validation works as expected", {
   # Invalid input: non-character
   expect_error(
     GetAlgoParams(n_params = 5, outfile_string = 123),
-    "ERROR: outfile_string must be a single CHARACTER sting that ends in .rds")
+    "ERROR: outfile_string must be a single CHARACTER sting that ends in .txt")
 
   # Invalid input: character string not ending in .rds
   expect_warning(GetAlgoParams(n_params = 5,
@@ -615,7 +615,7 @@ test_that("outfile_string validation works as expected", {
   expect_error(
     GetAlgoParams(n_params = 5,
                   outfile_string = c("my_par_model1.txt", "my_par_model2.txt")),
-    "ERROR: outfile_string must be a SINGLE character sting that ends in .rds")
+    "ERROR: outfile_string must be a SINGLE character sting that ends in .txt")
 })
 
 # Test for errors with invalid input types
