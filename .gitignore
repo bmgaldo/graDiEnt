@@ -24,3 +24,7 @@ tests/testthat/_snaps/
 # devtools / roxygen
 /doc/
 /Meta/
+
+# local R session config (machine-specific)
+.Rprofile
+.Renviron
