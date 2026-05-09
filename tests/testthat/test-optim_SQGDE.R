@@ -5,7 +5,8 @@ library(graDiEnt)
 test_that("MLE factorizable MVN recovers sample means", {
   set.seed(42)
   true_mu <- c(-1, 1, 0, 2)
-  data <- matrix(rnorm(500 * 4, mean = true_mu, sd = 1), nrow = 500, ncol = 4)
+  data <- matrix(rnorm(500 * 4, mean = true_mu, sd = 1),
+                 nrow = 500, ncol = 4 ,byrow = TRUE)
   analytic_mu <- colMeans(data)
 
   neg_log_lik <- function(x, data) {
@@ -155,8 +156,9 @@ test_that("PSOCK parallel execution returns valid solution", {
   skip_on_cran()
 
   set.seed(42)
-  true_mu <- c(-1, 1, 0, 2)
-  data_par <- matrix(rnorm(500 * 4, mean = true_mu, sd = 1), nrow = 500, ncol = 4)
+  true_mu <- c(-1, 8, 0, 2)
+  data_par <- matrix(rnorm(500 * 4, mean = true_mu, sd = 1),
+                         nrow = 500, ncol = 4 ,byrow = TRUE)
   analytic_mu <- colMeans(data_par)
 
   neg_log_lik <- function(x, data_par) {
@@ -201,7 +203,8 @@ test_that("FORK parallel execution returns valid solution", {
 
   set.seed(42)
   true_mu <- c(-1, 1, 0, 2)
-  data_par <- matrix(rnorm(500 * 4, mean = true_mu, sd = 1), nrow = 500, ncol = 4)
+  data_par <-  matrix(rnorm(500 * 4, mean = true_mu, sd = 1),
+                         nrow = 500, ncol = 4 ,byrow = TRUE)
   analytic_mu <- colMeans(data_par)
 
   neg_log_lik <- function(x, data_par) {
