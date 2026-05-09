@@ -30,6 +30,10 @@ jobs:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
 
+      - name: Install roxygen2
+        shell: Rscript {0}
+        run: install.packages("roxygen2", repos = "https://cloud.r-project.org")
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
