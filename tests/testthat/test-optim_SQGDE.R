@@ -45,7 +45,7 @@ test_that("MLE factorizable MVN recovers sample means", {
 
 test_that("univariate objective recovers sample mean", {
   set.seed(42)
-  obs <- rnorm(300, mean = 2.5, sd = 1)
+  obs <- rnorm(300, mean = 4, sd = 1)
   analytic_mu <- mean(obs)
 
   neg_log_lik_1d <- function(x, obs) {
@@ -60,9 +60,9 @@ test_that("univariate objective recovers sample mean", {
         n_params    = 1,
         n_iter      = 500,
         n_particles = 6,
-        n_diff      = 1,
+        n_diff      = 2,
         init_center = 0,
-        init_sd     = 2
+        init_sd     = 1
       ),
       obs = obs
     )
