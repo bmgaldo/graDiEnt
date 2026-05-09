@@ -1,2 +1,26 @@
+# R artifacts
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
 .Rproj.user
+*.Rproj.user
+
+# R build / check outputs
+*.Rcheck/
+*.tar.gz
+*.zip
+src/*.o
+src/*.so
+src/*.dll
+
+# macOS
 .DS_Store
+**/.DS_Store
+
+# testthat snapshots (auto-generated)
+tests/testthat/_snaps/
+
+# devtools / roxygen
+/doc/
+/Meta/
