@@ -35,7 +35,7 @@ test_that("MLE factorizable MVN recovers sample means", {
   )
 
   expect_type(out, "list")
-  expect_named(out, c("solution", "weight", "converged"))
+  expect_named(out, c("solution", "weight", "last_particles", "last_weights", "converged"))
   expect_length(out$solution, 4)
   expect_true(all(is.finite(out$solution)))
   expect_lt(max(abs(out$solution - analytic_mu)), 0.1)
@@ -69,7 +69,7 @@ test_that("univariate objective recovers sample mean", {
   )
 
   expect_type(out, "list")
-  expect_named(out, c("solution", "weight", "converged"))
+  expect_named(out, c("solution", "weight", "last_particles", "last_weights", "converged"))
   expect_length(out$solution, 1)
   expect_true(is.finite(out$solution))
   expect_lt(abs(out$solution - analytic_mu), 0.1)
@@ -189,7 +189,7 @@ test_that("PSOCK parallel execution returns valid solution", {
   )
 
   expect_type(out, "list")
-  expect_named(out, c("solution", "weight", "converged"))
+  expect_named(out, c("solution", "weight", "last_particles", "last_weights", "converged"))
   expect_length(out$solution, 4)
   expect_true(all(is.finite(out$solution)))
   expect_lt(max(abs(out$solution - analytic_mu)), 0.1)
@@ -235,7 +235,7 @@ test_that("FORK parallel execution returns valid solution", {
   )
 
   expect_type(out, "list")
-  expect_named(out, c("solution", "weight", "converged"))
+  expect_named(out, c("solution", "weight", "last_particles", "last_weights", "converged"))
   expect_length(out$solution, 4)
   expect_true(all(is.finite(out$solution)))
   expect_lt(max(abs(out$solution - analytic_mu)), 0.1)
