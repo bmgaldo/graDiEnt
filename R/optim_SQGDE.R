@@ -143,6 +143,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                                 crossover_rate = control_params$crossover_rate,
                                 lower = control_params$lower,
                                 upper = control_params$upper,
+                                bounds_type = control_params$bounds_type,
                                 n_diff = control_params$n_diff, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)
@@ -158,6 +159,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                                              crossover_rate = control_params$crossover_rate,
                                              lower = control_params$lower,
                                              upper = control_params$upper,
+                                             bounds_type = control_params$bounds_type,
                                              n_diff = control_params$n_diff, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)
