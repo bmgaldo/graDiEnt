@@ -13,6 +13,7 @@ GetAlgoParams(
   init_center = 0,
   lower = -Inf,
   upper = Inf,
+  bounds_type = "reflect",
   n_cores_use = 1,
   step_size = NULL,
   jitter_size = 1e-06,
@@ -44,6 +45,8 @@ GetAlgoParams(
 \item{lower}{A numeric scalar or n_params-dimensional vector specifying lower bounds for each parameter. Default is -Inf (no lower bound).}
 
 \item{upper}{A numeric scalar or n_params-dimensional vector specifying upper bounds for each parameter. Default is Inf (no upper bound).}
+
+\item{bounds_type}{A string specifying how parameter bounds are enforced on proposals. 'clip' truncates proposals to [lower, upper]. 'reflect' mirrors proposals back across the boundary (with clip fallback for very large steps). Default is 'reflect'.}
 
 \item{n_cores_use}{An integer specifying the number of cores used when using parallelization. The default value is 1.}
 
