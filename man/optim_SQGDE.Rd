@@ -4,12 +4,14 @@
 \alias{optim_SQGDE}
 \title{optim_SQGDE}
 \usage{
-optim_SQGDE(ObjFun, control_params = GetAlgoParams(), ...)
+optim_SQGDE(ObjFun, control_params = GetAlgoParams(), warm_start = NULL, ...)
 }
 \arguments{
 \item{ObjFun}{A scalar-returning function to minimize whose first argument is a real-valued n_params-dimensional vector.}
 
 \item{control_params}{control parameters for SQG-DE algo. see \code{\link{GetAlgoParams}} function documentation for more details. The only argument you NEED to pass here is n_params.}
+
+\item{warm_start}{Optional. Output list from a previous call to \code{optim_SQGDE}. When provided, skips random initialization and seeds the population from the previous run's final particle state. \code{n_params} and \code{n_particles} in \code{control_params} must match the previous run.}
 
 \item{...}{additional arguments to pass ObjFun.}
 }
