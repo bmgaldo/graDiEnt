@@ -20,6 +20,7 @@ SQG_DE_bin_1_curr=function(pmem_index,
                            crossover_rate = 1,
                            lower = -Inf,
                            upper = Inf,
+                           bounds_type = 'reflect',
                            n_diff, ... ){
 
   # sample parents
@@ -73,7 +74,7 @@ SQG_DE_bin_1_curr=function(pmem_index,
       step_size*psi*(grad_approx) + # move in the direction against the gradient
       stats::runif(len_param_use, -jitter_size, jitter_size) # a little noise
   }
-  params_use = pmax(lower, pmin(upper, params_use))
+  params_use = apply_bounds(params_use, lower, upper, bounds_type)
   params_use = matrix(params_use,1,len_param_use)
 
   weight_proposal = NA

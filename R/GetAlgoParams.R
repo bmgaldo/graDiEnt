@@ -20,6 +20,7 @@
 #' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
 #' @param lower A numeric scalar or n_params-dimensional vector specifying lower bounds for each parameter. Default is -Inf (no lower bound).
 #' @param upper A numeric scalar or n_params-dimensional vector specifying upper bounds for each parameter. Default is Inf (no upper bound).
+#' @param bounds_type A string specifying how parameter bounds are enforced on proposals. 'clip' truncates proposals to [lower, upper]. 'reflect' mirrors proposals back across the boundary (with clip fallback for very large steps). Default is 'reflect'.
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
@@ -31,6 +32,7 @@ GetAlgoParams = function(n_params,
                          init_center = 0,
                          lower = -Inf,
                          upper = Inf,
+                         bounds_type = 'reflect',
                          n_cores_use = 1,
                          step_size = NULL,
                          jitter_size = 1e-6,
@@ -119,6 +121,13 @@ GetAlgoParams = function(n_params,
 
   if(any(lower >= upper)){
     stop('ERROR: lower must be strictly less than upper for all parameters')
+  }
+
+  # bounds_type
+  validBoundsType = c('clip', 'reflect')
+  if(is.null(bounds_type)) bounds_type = 'reflect'
+  if(!bounds_type %in% validBoundsType){
+    stop('ERROR: bounds_type must be "clip" or "reflect"')
   }
 
   # n_cores_use
@@ -292,6 +301,7 @@ GetAlgoParams = function(n_params,
              'init_center' = init_center,
              'lower' = lower,
              'upper' = upper,
+             'bounds_type' = bounds_type,
              'n_cores_use' = n_cores_use,
              'step_size' = step_size,
              'crossover_rate' = crossover_rate,
