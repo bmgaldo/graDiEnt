@@ -77,9 +77,11 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   for(pmem_index in 1:control_params$n_particles){
     count = 0 # establish a count variable to avoid infinite run time
     while(weights[1,pmem_index]==Inf) {
-      particles[1, pmem_index, ] = stats::rnorm(control_params$n_params,
-                                                control_params$init_center,
-                                                control_params$init_sd)
+      particles[1, pmem_index, ] = pmax(control_params$lower,
+                                        pmin(control_params$upper,
+                                             stats::rnorm(control_params$n_params,
+                                                          control_params$init_center,
+                                                          control_params$init_sd)))
 
       weights[1, pmem_index] = ObjFun(particles[1, pmem_index, ], ...)
 
@@ -139,6 +141,8 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                                 jitter_size = control_params$jitter_size,
                                 n_particles = control_params$n_particles,
                                 crossover_rate = control_params$crossover_rate,
+                                lower = control_params$lower,
+                                upper = control_params$upper,
                                 n_diff = control_params$n_diff, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)
@@ -152,6 +156,8 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                                              jitter_size = control_params$jitter_size,
                                              n_particles = control_params$n_particles,
                                              crossover_rate = control_params$crossover_rate,
+                                             lower = control_params$lower,
+                                             upper = control_params$upper,
                                              n_diff = control_params$n_diff, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)

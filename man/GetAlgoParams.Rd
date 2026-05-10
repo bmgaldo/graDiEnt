@@ -11,6 +11,8 @@ GetAlgoParams(
   n_iter = 1000,
   init_sd = 0.01,
   init_center = 0,
+  lower = -Inf,
+  upper = Inf,
   n_cores_use = 1,
   step_size = NULL,
   jitter_size = 1e-06,
@@ -38,6 +40,10 @@ GetAlgoParams(
 \item{init_sd}{A positive scalar or n_params-dimensional numeric vector, determines the standard deviation of the Gaussian initialization distribution. The default value is 0.01.}
 
 \item{init_center}{A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution. The default value is 0.}
+
+\item{lower}{A numeric scalar or n_params-dimensional vector specifying lower bounds for each parameter. Default is -Inf (no lower bound).}
+
+\item{upper}{A numeric scalar or n_params-dimensional vector specifying upper bounds for each parameter. Default is Inf (no upper bound).}
 
 \item{n_cores_use}{An integer specifying the number of cores used when using parallelization. The default value is 1.}
 

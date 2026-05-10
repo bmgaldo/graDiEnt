@@ -18,6 +18,8 @@
 #' @param give_up_init An integer for how many failed initialization attempts before stopping the optimization routine. 100 is the default value.
 #' @param stop_check An integer for how often to check the convergence criterion. The default is 10 iterations.
 #' @param stop_tol A convergence metric must be less than value to be labeled as converged. The default is 1e-4.
+#' @param lower A numeric scalar or n_params-dimensional vector specifying lower bounds for each parameter. Default is -Inf (no lower bound).
+#' @param upper A numeric scalar or n_params-dimensional vector specifying upper bounds for each parameter. Default is Inf (no upper bound).
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
@@ -27,6 +29,8 @@ GetAlgoParams = function(n_params,
                          n_iter = 1000,
                          init_sd = 0.01,
                          init_center = 0,
+                         lower = -Inf,
+                         upper = Inf,
                          n_cores_use = 1,
                          step_size = NULL,
                          jitter_size = 1e-6,
@@ -93,6 +97,28 @@ GetAlgoParams = function(n_params,
     stop('ERROR: init_center must be real valued')
   } else if(!(length(init_center) == 1 | length(init_center) == n_params)){
     stop('ERROR: init_center vector length must be 1 or n_params')
+  }
+
+  # lower
+  lower = as.numeric(lower)
+  if(any(is.nan(lower))){
+    stop('ERROR: lower contains NaN')
+  } else if(!(length(lower) == 1 | length(lower) == n_params)){
+    stop('ERROR: lower vector length must be 1 or n_params')
+  }
+  if(length(lower) == 1) lower = rep(lower, n_params)
+
+  # upper
+  upper = as.numeric(upper)
+  if(any(is.nan(upper))){
+    stop('ERROR: upper contains NaN')
+  } else if(!(length(upper) == 1 | length(upper) == n_params)){
+    stop('ERROR: upper vector length must be 1 or n_params')
+  }
+  if(length(upper) == 1) upper = rep(upper, n_params)
+
+  if(any(lower >= upper)){
+    stop('ERROR: lower must be strictly less than upper for all parameters')
   }
 
   # n_cores_use
@@ -264,6 +290,8 @@ GetAlgoParams = function(n_params,
              'n_iter' = n_iter,
              'init_sd' = init_sd,
              'init_center' = init_center,
+             'lower' = lower,
+             'upper' = upper,
              'n_cores_use' = n_cores_use,
              'step_size' = step_size,
              'crossover_rate' = crossover_rate,
