@@ -3,6 +3,7 @@
 #' @description  Runs Stochastic Quasi-Gradient Differential Evolution (SQG-DE; Sala, Baldanzini, and Pierini, 2018) to minimize an objective function f(x). To maximize a function f(x), simply pass g(x)=-f(x) to ObjFun argument.
 #' @param ObjFun A scalar-returning function to minimize whose first argument is a real-valued n_params-dimensional vector.
 #' @param control_params control parameters for SQG-DE algo. see \code{\link{GetAlgoParams}} function documentation for more details. The only argument you NEED to pass here is n_params.
+#' @param warm_start Optional. Output list from a previous call to \code{optim_SQGDE}. When provided, skips random initialization and seeds the population from the previous run's final particle state. \code{n_params} and \code{n_particles} in \code{control_params} must match the previous run.
 #' @param ... additional arguments to pass ObjFun.
 #' @return list containing solution and it's corresponding weight (i.e. f(solution)).
 #' @export
@@ -61,7 +62,7 @@
 #' par(old_par) # restore user graphic state
 #'
 
-optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
+optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NULL, ...){
 
   # create memory structures for storing particle trajectories
   particles = array(NA,
@@ -72,33 +73,54 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
                    nrow = control_params$n_iters_per_particle,
                    ncol = control_params$n_particles)
 
-  # pop initialization
-  message('initalizing population...')
-  for(pmem_index in 1:control_params$n_particles){
-    count = 0 # establish a count variable to avoid infinite run time
-    while(weights[1,pmem_index]==Inf) {
-      particles[1, pmem_index, ] = pmax(control_params$lower,
-                                        pmin(control_params$upper,
-                                             stats::rnorm(control_params$n_params,
-                                                          control_params$init_center,
-                                                          control_params$init_sd)))
+  if (!is.null(warm_start)) {
+    # warm start: seed population from previous run
+    if (!all(c('last_particles', 'last_weights') %in% names(warm_start))) {
+      stop('ERROR: warm_start must be output of optim_SQGDE (missing last_particles or last_weights)')
+    }
+    if (!identical(dim(warm_start$last_particles),
+                   c(control_params$n_particles, control_params$n_params))) {
+      stop(paste0('ERROR: warm_start$last_particles is ',
+                  paste(dim(warm_start$last_particles), collapse = 'x'),
+                  ' but control_params expects ',
+                  control_params$n_particles, 'x', control_params$n_params))
+    }
+    if (length(warm_start$last_weights) != control_params$n_particles) {
+      stop(paste0('ERROR: warm_start$last_weights length ', length(warm_start$last_weights),
+                  ' does not match control_params$n_particles ', control_params$n_particles))
+    }
+    particles[1, , ] = warm_start$last_particles
+    weights[1, ]     = warm_start$last_weights
+    message('warm start: population seeded from previous run')
+  } else {
+    # pop initialization
+    message('initalizing population...')
+    for(pmem_index in 1:control_params$n_particles){
+      count = 0 # establish a count variable to avoid infinite run time
+      while(weights[1,pmem_index]==Inf) {
+        particles[1, pmem_index, ] = pmax(control_params$lower,
+                                          pmin(control_params$upper,
+                                               stats::rnorm(control_params$n_params,
+                                                            control_params$init_center,
+                                                            control_params$init_sd)))
 
-      weights[1, pmem_index] = ObjFun(particles[1, pmem_index, ], ...)
+        weights[1, pmem_index] = ObjFun(particles[1, pmem_index, ], ...)
 
-      # catcha NA's and Infinity and assign worst possible value
-      if(!is.finite(weights[1, pmem_index])){
-        weights[1, pmem_index] = Inf
-      }
-      count = count + 1
-      if(count>control_params$give_up_init){
-        stop('population initialization failed.
+        # catcha NA's and Infinity and assign worst possible value
+        if(!is.finite(weights[1, pmem_index])){
+          weights[1, pmem_index] = Inf
+        }
+        count = count + 1
+        if(count>control_params$give_up_init){
+          stop('population initialization failed.
         inspect objective function or change init_center/init_sd to sample more
              likely parameter values')
+        }
       }
+      message(paste0(pmem_index, " / ", control_params$n_particles))
     }
-    message(paste0(pmem_index, " / ", control_params$n_particles))
+    message('population initialization complete  :)')
   }
-  message('population initialization complete  :)')
 
   # assign adaption scheme
   if(control_params$adapt_scheme=='rand'){
@@ -246,15 +268,24 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), ...){
   minIdx = which.min(weights[iter_idx, ])
   minEst = particles[iter_idx, minIdx, ]
 
+  last_particles = matrix(particles[iter_idx, , ],
+                          nrow = control_params$n_particles,
+                          ncol = control_params$n_params)
+  last_weights = weights[iter_idx, ]
+
   if(control_params$return_trace==TRUE){
     return(list('solution' = minEst,
                 'weight' = weights[iter_idx, minIdx],
+                'last_particles' = last_particles,
+                'last_weights' = last_weights,
                 'particles_trace' = particles,
                 'weights_trace' = weights,
                 'converged' = converge_test_passed))
   } else {
     return(list('solution' = minEst,
                 'weight' = weights[iter_idx, minIdx],
+                'last_particles' = last_particles,
+                'last_weights' = last_weights,
                 'converged' = converge_test_passed))
   }
 }
