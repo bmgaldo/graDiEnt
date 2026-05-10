@@ -17,8 +17,10 @@ SQG_DE_bin_1_best=function(pmem_index,
                            objFun,
                            step_size = .8,
                            jitter_size = 1e-6,
-                           n_particles, 
+                           n_particles,
                            crossover_rate = 1,
+                           lower = -Inf,
+                           upper = Inf,
                            n_diff, ... ){
 
   # get statistics about particle
@@ -72,6 +74,7 @@ SQG_DE_bin_1_best=function(pmem_index,
       step_size*psi*(grad_approx) + # move in the direction against the gradient
       stats::runif(len_param_use,-jitter_size,jitter_size) # a little noise
   }
+  params_use = pmax(lower, pmin(upper, params_use))
   params_use = matrix(params_use,1,len_param_use)
 
   weight_proposal = NA
