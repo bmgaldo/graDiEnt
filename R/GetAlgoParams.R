@@ -4,7 +4,7 @@
 #' @param n_particles The number of particles (population size), 3*n_params is the default value.
 #' @param n_iter The number of iterations to run the algorithm, 1000 is default.
 #' @param n_diff The number of mutually exclusive vector pairs to stochastically approximate the gradient.
-#' @param crossover_rate A numeric scalar on the interval (0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution. The default value is 1.
+#' @param crossover_rate A numeric scalar on the interval [0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution. When 0, exactly one randomly chosen parameter is updated per iteration. The default value is 1.
 #' @param init_sd A positive scalar or n_params-dimensional numeric vector, determines the standard deviation of the Gaussian initialization distribution. The default value is 0.01.
 #' @param init_center A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution. The default value is 0.
 #' @param n_cores_use An integer specifying the number of cores used when using parallelization. The default value is 1.
@@ -21,6 +21,7 @@
 #' @param lower A numeric scalar or n_params-dimensional vector specifying lower bounds for each parameter. Default is -Inf (no lower bound).
 #' @param upper A numeric scalar or n_params-dimensional vector specifying upper bounds for each parameter. Default is Inf (no upper bound).
 #' @param bounds_type A string specifying how parameter bounds are enforced on proposals. 'clip' truncates proposals to [lower, upper]. 'reflect' mirrors proposals back across the boundary (with clip fallback for very large steps). Default is 'reflect'.
+#' @param trace_print_freq A positive integer controlling how often iteration progress is printed. A message is printed every \code{trace_print_freq} iterations. Set to \code{Inf} to suppress progress messages entirely. Default is 100.
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
@@ -45,7 +46,8 @@ GetAlgoParams = function(n_params,
                          give_up_init = 100,
                          stop_check = 10,
                          stop_tol = 1e-4,
-                         converge_crit = 'stdev'){
+                         converge_crit = 'stdev',
+                         trace_print_freq = 100){
   # n_params
   ### catch errors
   n_params = as.integer(n_params)
@@ -181,8 +183,8 @@ GetAlgoParams = function(n_params,
   crossover_rate = as.numeric(crossover_rate)
   if(any(!is.finite(crossover_rate))){
     stop('ERROR: crossover_rate is not finite')
-  } else if(any(crossover_rate>1) | any(crossover_rate<= 0) | length(crossover_rate)>1){
-    stop('ERROR: crossover_rate must be a numeric scalar on the interval (0,1]')
+  } else if(any(crossover_rate>1) | any(crossover_rate< 0) | length(crossover_rate)>1){
+    stop('ERROR: crossover_rate must be a numeric scalar on the interval [0,1]')
   } else if(is.complex(crossover_rate)){
     stop('ERROR: crossover_rate cannot be complex')
   }
@@ -294,6 +296,18 @@ GetAlgoParams = function(n_params,
     stop('ERROR: stop_tol must be a scalar positive')
   }
 
+  # trace_print_freq
+  if(is.null(trace_print_freq)) trace_print_freq = 100
+  if(!(length(trace_print_freq) == 1)){
+    stop('ERROR: trace_print_freq must be a scalar')
+  }
+  if(is.finite(trace_print_freq)){
+    trace_print_freq = as.integer(trace_print_freq)
+    if(trace_print_freq < 1){
+      stop('ERROR: trace_print_freq must be a positive integer or Inf')
+    }
+  }
+
   out = list('n_params' = n_params,
              'n_particles' = n_particles,
              'n_iter' = n_iter,
@@ -316,7 +330,8 @@ GetAlgoParams = function(n_params,
              'give_up_init'= give_up_init,
              'stop_tol' = stop_tol,
              'stop_check' = stop_check,
-             'converge_crit' = converge_crit)
+             'converge_crit' = converge_crit,
+             'trace_print_freq' = trace_print_freq)
 
   return(out)
 }

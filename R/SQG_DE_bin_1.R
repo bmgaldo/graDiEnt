@@ -89,7 +89,7 @@ SQG_DE_bin_1 = function(pmem_index,
   if (all(is.finite(grad_approx)) & is.finite(psi) & (psi > 0)) {
     params_use[param_indices] = current_params[base_index, param_indices] -
       step_size * psi * grad_approx +
-      stats::runif(len_param_use, -jitter_size, jitter_size)
+      stats::runif(length(param_indices), -jitter_size, jitter_size)
   }
 
   params_use = apply_bounds(params_use, lower, upper, bounds_type)

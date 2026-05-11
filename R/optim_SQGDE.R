@@ -243,7 +243,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
 
 
 
-    if(iter%%100==0){
+    if(is.finite(control_params$trace_print_freq) && iter%%control_params$trace_print_freq==0){
       message(paste0('iter ', iter, '/', control_params$n_iter))
     }
     if(iter%%control_params$thin==0 & !(iter==control_params$n_iter)){
