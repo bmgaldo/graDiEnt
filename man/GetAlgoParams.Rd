@@ -19,6 +19,8 @@ GetAlgoParams(
   jitter_size = 1e-06,
   crossover_rate = 1,
   parallel_type = "none",
+  recovery_path = NULL,
+  recovery_freq = 1,
   return_trace = FALSE,
   thin = 1,
   purify = Inf,
@@ -26,7 +28,8 @@ GetAlgoParams(
   give_up_init = 100,
   stop_check = 10,
   stop_tol = 1e-04,
-  converge_crit = "stdev"
+  converge_crit = "stdev",
+  trace_print_freq = 100
 )
 }
 \arguments{
@@ -54,9 +57,13 @@ GetAlgoParams(
 
 \item{jitter_size}{A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.}
 
-\item{crossover_rate}{A numeric scalar on the interval (0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution. The default value is 1.}
+\item{crossover_rate}{A numeric scalar on the interval [0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution. When 0, exactly one randomly chosen parameter is updated per iteration. The default value is 1.}
 
 \item{parallel_type}{A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.}
+
+\item{recovery_path}{A character scalar giving a file path where partial results are written via \code{saveRDS} periodically. Allows recovery of progress if the run is interrupted or crashes. Load with \code{readRDS(recovery_path)}. The saved object matches the structure of the return value of \code{optim_SQGDE} but excludes trace arrays. Set to \code{NULL} (default) to disable.}
+
+\item{recovery_freq}{A positive integer controlling how often the recovery file is written. The file is saved every \code{recovery_freq} iterations. Default is 1 (every iteration). Ignored when \code{recovery_path} is \code{NULL}.}
 
 \item{return_trace}{A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.}
 
@@ -73,6 +80,8 @@ GetAlgoParams(
 \item{stop_tol}{A convergence metric must be less than value to be labeled as converged. The default is 1e-4.}
 
 \item{converge_crit}{A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.}
+
+\item{trace_print_freq}{A positive integer controlling how often iteration progress is printed. A message is printed every \code{trace_print_freq} iterations. Set to \code{Inf} to suppress progress messages entirely. Default is 100.}
 }
 \value{
 A list of control parameters for the optim_SQGDE function.
