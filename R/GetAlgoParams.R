@@ -11,6 +11,8 @@
 #' @param step_size A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).
 #' @param jitter_size A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.
 #' @param parallel_type A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.
+#' @param recovery_path A character scalar giving a file path where partial results are written via \code{saveRDS} periodically. Allows recovery of progress if the run is interrupted or crashes. Load with \code{readRDS(recovery_path)}. The saved object matches the structure of the return value of \code{optim_SQGDE} but excludes trace arrays. Set to \code{NULL} (default) to disable.
+#' @param recovery_freq A positive integer controlling how often the recovery file is written. The file is saved every \code{recovery_freq} iterations. Default is 1 (every iteration). Ignored when \code{recovery_path} is \code{NULL}.
 #' @param return_trace A boolean, if true, the function returns particle trajectories. This is helpful for assessing convergence or debugging model code. The trace will be an iteration/thin $x$ n_particles $x$ n_params array containing parameter values and an iteration/thin $x$ n_particles array containing particle weights.
 #' @param thin A positive integer. Only every 'thin'-th iteration will be stored in memory. The default value is 1. Increasing thin will reduce the memory required when running the algorithim for longer.
 #' @param purify A positive integer. On every 'purify'-th iteration the particle weights are recomputed. This is useful if the objective function is stochastic/noisy. If the objective function is deterministic, this computation is redundant. Purify is set to Inf by default, disabling it.
@@ -39,6 +41,8 @@ GetAlgoParams = function(n_params,
                          jitter_size = 1e-6,
                          crossover_rate = 1,
                          parallel_type = 'none',
+                         recovery_path = NULL,
+                         recovery_freq = 1,
                          return_trace = FALSE,
                          thin = 1,
                          purify = Inf,
@@ -200,6 +204,22 @@ GetAlgoParams = function(n_params,
     stop(paste('ERROR: invalid parallel_type.'))
   }
 
+  # recovery_path
+  if(!is.null(recovery_path)){
+    if(!is.character(recovery_path) | length(recovery_path) != 1){
+      stop('ERROR: recovery_path must be NULL or a character scalar file path')
+    }
+    if(!grepl('\\.rds$', recovery_path, ignore.case = TRUE)){
+      stop('ERROR: recovery_path must end in .rds')
+    }
+  }
+
+  # recovery_freq
+  recovery_freq = as.integer(recovery_freq)
+  if(length(recovery_freq) != 1 || !is.finite(recovery_freq) || recovery_freq < 1){
+    stop('ERROR: recovery_freq must be a positive integer scalar')
+  }
+
   #converge_crit
   validConType = c('stdev','percent')
   ### assign NULL value default
@@ -321,6 +341,8 @@ GetAlgoParams = function(n_params,
              'crossover_rate' = crossover_rate,
              'jitter_size' = jitter_size,
              'parallel_type' = parallel_type,
+             'recovery_path' = recovery_path,
+             'recovery_freq' = recovery_freq,
              'thin' = thin,
              'purify' = purify,
              'n_iters_per_particle' = n_iters_per_particle,

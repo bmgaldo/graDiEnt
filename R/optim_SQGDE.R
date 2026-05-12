@@ -134,6 +134,9 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
     parallel::clusterSetRNGStream(cl_use)
   }
 
+  if(!is.null(control_params$recovery_path)){
+    message(paste0('recovery enabled: writing partial results to "', control_params$recovery_path, '" each iteration'))
+  }
   message("running SQG-DE...")
 
 
@@ -218,6 +221,20 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
         weights[iter_idx+1, ] = temp[, 1]
         particles[iter_idx+1, , ] = temp[, 2:(control_params$n_params+1)]
       }
+    }
+
+    if(!is.null(control_params$recovery_path) && iter %% control_params$recovery_freq == 0){
+      .minIdx_r <- which.min(weights[iter_idx, ])
+      saveRDS(list(
+        solution       = particles[iter_idx, .minIdx_r, ],
+        weight         = weights[iter_idx, .minIdx_r],
+        last_particles = matrix(particles[iter_idx, , ],
+                                nrow = control_params$n_particles,
+                                ncol = control_params$n_params),
+        last_weights   = weights[iter_idx, ],
+        converged      = FALSE,
+        iter_completed = iter
+      ), file = control_params$recovery_path)
     }
 
     if(iter %% control_params$stop_check==0){
