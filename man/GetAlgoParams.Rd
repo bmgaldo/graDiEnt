@@ -55,7 +55,7 @@ GetAlgoParams(
 
 \item{step_size}{A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).}
 
-\item{jitter_size}{A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.}
+\item{jitter_size}{A non-negative scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.}
 
 \item{crossover_rate}{A numeric scalar on the interval [0,1]. Determines the probability a parameter on a chain is updated on a given crossover step, sampled from a Bernoulli distribution. When 0, exactly one randomly chosen parameter is updated per iteration. The default value is 1.}
 
