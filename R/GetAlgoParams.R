@@ -9,7 +9,7 @@
 #' @param init_center A scalar or n_params-dimensional numeric vector, determines the mean of the Gaussian initialization distribution. The default value is 0.
 #' @param n_cores_use An integer specifying the number of cores used when using parallelization. The default value is 1.
 #' @param step_size A positive scalar, jump size or "F" in the DE crossover step notation. The default value is 2.38/sqrt(2*n_params).
-#' @param jitter_size A positive scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.
+#' @param jitter_size A non-negative scalar that determines the jitter (noise) size. Noise is added during adaption step from Uniform(-jitter_size,jitter_size) distribution. 1e-6 is the default value. Set to 0 to turn off jitter.
 #' @param parallel_type A string specifying parallelization type. 'none','FORK', or 'PSOCK' are valid values. 'none' is default value. 'FORK' does not work with Windows OS.
 #' @param recovery_path A character scalar giving a file path where partial results are written via \code{saveRDS} periodically. Allows recovery of progress if the run is interrupted or crashes. Load with \code{readRDS(recovery_path)}. The saved object matches the structure of the return value of \code{optim_SQGDE} but excludes trace arrays. Set to \code{NULL} (default) to disable.
 #' @param recovery_freq A positive integer controlling how often the recovery file is written. The file is saved every \code{recovery_freq} iterations. Default is 1 (every iteration). Ignored when \code{recovery_path} is \code{NULL}.
@@ -54,11 +54,12 @@ GetAlgoParams = function(n_params,
                          trace_print_freq = 100){
   # n_params
   ### catch errors
+  if(length(n_params) > 1 || !is.finite(n_params)){
+    stop('ERROR: n_params must be a positive finite integer scalar')
+  }
   n_params = as.integer(n_params)
-  if(any(!is.finite(n_params))){
-    stop('ERROR: n_params is not finite')
-  }  else if( n_params<1 | length(n_params)>1){
-    stop('ERROR: n_params must be a postitive integer scalar')
+  if(n_params < 1){
+    stop('ERROR: n_params must be a positive finite integer scalar')
   }
 
   # n_particles
@@ -67,11 +68,12 @@ GetAlgoParams = function(n_params,
     n_particles = max(3*n_params,4)
   }
   ### catch errors
+  if(length(n_particles) > 1 || !is.finite(n_particles)){
+    stop('ERROR: n_particles must be a positive finite integer scalar, and at least 4')
+  }
   n_particles = as.integer(n_particles)
-  if(any(!is.finite(n_particles))){
-    stop('ERROR: n_particles is not finite')
-  } else if( n_particles<4 | length(n_particles)>1){
-    stop('ERROR: n_particles must be a postitive integer scalar, and atleast 4')
+  if(n_particles < 4){
+    stop('ERROR: n_particles must be a positive finite integer scalar, and at least 4')
   }
 
   # n_iter
@@ -80,11 +82,12 @@ GetAlgoParams = function(n_params,
     n_iter = 1000
   }
   ### catch errors
+  if(length(n_iter) > 1 || !is.finite(n_iter)){
+    stop('ERROR: n_iter must be a positive finite integer scalar, and at least 4')
+  }
   n_iter = as.integer(n_iter)
-  if(any(!is.finite(n_iter))){
-    stop('ERROR: n_iter is not finite')
-  } else if( n_iter<4 | length(n_iter)>1){
-    stop('ERROR: n_iter must be a postitive integer scalar, and atleast 4')
+  if(n_iter < 4){
+    stop('ERROR: n_iter must be a positive finite integer scalar, and at least 4')
   }
 
   # init_sd
@@ -172,8 +175,8 @@ GetAlgoParams = function(n_params,
   ### catch any errors
   if(any(!is.finite(jitter_size))){
     stop('ERROR: jitter_size is not finite')
-  } else if(any(jitter_size<= 0 | is.complex(jitter_size))){
-    stop('ERROR: jitter_size must be positive and real-valued')
+  } else if(any(jitter_size < 0 | is.complex(jitter_size))){
+    stop('ERROR: jitter_size must be non-negative and real-valued')
   } else if(!(length(jitter_size) == 1)){
     stop('ERROR: jitter_size vector length must be 1 ')
   }
