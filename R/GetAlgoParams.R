@@ -25,6 +25,7 @@
 #' @param bounds_type A string specifying how parameter bounds are enforced on proposals. 'clip' truncates proposals to [lower, upper]. 'reflect' mirrors proposals back across the boundary (with clip fallback for very large steps). Default is 'reflect'.
 #' @param trace_print_freq A positive integer controlling how often iteration progress is printed. A message is printed every \code{trace_print_freq} iterations. Set to \code{Inf} to suppress progress messages entirely. Default is 100.
 #' @param converge_crit A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.
+#' @param param_block_list An optional list of integer vectors partitioning parameter indices into blocks. When provided, the algorithm cycles through blocks in order across iterations, updating only the parameters in the current block instead of using random crossover selection. Each index in \code{1:n_params} must appear in exactly one block. Set to \code{NULL} (default) to use standard crossover selection.
 #' @return A list of control parameters for the optim_SQGDE function.
 #' @export
 GetAlgoParams = function(n_params,
@@ -51,7 +52,8 @@ GetAlgoParams = function(n_params,
                          stop_check = 10,
                          stop_tol = 1e-4,
                          converge_crit = 'stdev',
-                         trace_print_freq = 100){
+                         trace_print_freq = 100,
+                         param_block_list = NULL){
   # n_params
   ### catch errors
   if(length(n_params) > 1 || !is.finite(n_params)){
@@ -331,6 +333,22 @@ GetAlgoParams = function(n_params,
     }
   }
 
+  # param_block_list
+  if (!is.null(param_block_list)) {
+    if (!is.list(param_block_list) || length(param_block_list) < 1) {
+      stop('ERROR: param_block_list must be NULL or a non-empty list of integer vectors')
+    }
+    all_indices = unlist(param_block_list)
+    if (!is.numeric(all_indices) || any(!is.finite(all_indices)) || any(all_indices < 1) || any(all_indices > n_params)) {
+      stop('ERROR: param_block_list indices must be integers in 1:n_params')
+    }
+    all_indices = as.integer(all_indices)
+    if (length(all_indices) != n_params || length(unique(all_indices)) != n_params) {
+      stop('ERROR: param_block_list must partition 1:n_params - each index must appear exactly once')
+    }
+    param_block_list = lapply(param_block_list, as.integer)
+  }
+
   out = list('n_params' = n_params,
              'n_particles' = n_particles,
              'n_iter' = n_iter,
@@ -356,7 +374,8 @@ GetAlgoParams = function(n_params,
              'stop_tol' = stop_tol,
              'stop_check' = stop_check,
              'converge_crit' = converge_crit,
-             'trace_print_freq' = trace_print_freq)
+             'trace_print_freq' = trace_print_freq,
+             'param_block_list' = param_block_list)
 
   return(out)
 }

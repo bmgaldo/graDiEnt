@@ -52,7 +52,8 @@ SQG_DE_bin_1 = function(pmem_index,
                          lower        = -Inf,
                          upper        =  Inf,
                          bounds_type  = 'reflect',
-                         n_diff, ...) {
+                         n_diff,
+                         param_block  = NULL, ...) {
 
   weight_use       = current_weight[pmem_index]
   params_use       = current_params[pmem_index, ]
@@ -73,12 +74,16 @@ SQG_DE_bin_1 = function(pmem_index,
     base_index = parent_indices[2*n_diff+1]
   }
 
-  # crossover: select which parameters to update
-  param_idices_bool = stats::rbinom(len_param_use, prob = crossover_rate, size = 1)
-  if (all(param_idices_bool == 0)) {
-    param_idices_bool[sample(x = 1:len_param_use, size = 1)] = 1
+  # select which parameters to update
+  if (!is.null(param_block)) {
+    param_indices = param_block
+  } else {
+    param_idices_bool = stats::rbinom(len_param_use, prob = crossover_rate, size = 1)
+    if (all(param_idices_bool == 0)) {
+      param_idices_bool[sample(x = 1:len_param_use, size = 1)] = 1
+    }
+    param_indices = seq(1, len_param_use, by = 1)[as.logical(param_idices_bool)]
   }
-  param_indices = seq(1, len_param_use, by = 1)[as.logical(param_idices_bool)]
 
   # approximate gradient and self-scaling factor
   ga           = grad_approx_fn(param_indices, n_diff, current_params,
