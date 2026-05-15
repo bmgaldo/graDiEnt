@@ -29,7 +29,8 @@ GetAlgoParams(
   stop_check = 10,
   stop_tol = 1e-04,
   converge_crit = "stdev",
-  trace_print_freq = 100
+  trace_print_freq = 100,
+  param_block_list = NULL
 )
 }
 \arguments{
@@ -82,6 +83,8 @@ GetAlgoParams(
 \item{converge_crit}{A string denoting the convergence metric used, valid metrics are 'stdev' (standard deviation of population weight in the last stop_check iterations) and 'percent' (percent improvement in median particle weight in the last stop_check iterations). 'stdev' is the default.}
 
 \item{trace_print_freq}{A positive integer controlling how often iteration progress is printed. A message is printed every \code{trace_print_freq} iterations. Set to \code{Inf} to suppress progress messages entirely. Default is 100.}
+
+\item{param_block_list}{An optional list of integer vectors partitioning parameter indices into blocks. When provided, the algorithm cycles through blocks in order across iterations, updating only the parameters in the current block instead of using random crossover selection. Each index in \code{1:n_params} must appear in exactly one block. Set to \code{NULL} (default) to use standard crossover selection.}
 }
 \value{
 A list of control parameters for the optim_SQGDE function.
