@@ -60,6 +60,7 @@ test_that("missing index errors", {
   )
 })
 
+
 test_that("empty list errors", {
   expect_error(
     GetAlgoParams(n_params = 4, param_block_list = list()),

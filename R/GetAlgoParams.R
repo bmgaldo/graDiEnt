@@ -344,7 +344,7 @@ GetAlgoParams = function(n_params,
     }
     all_indices = as.integer(all_indices)
     if (length(all_indices) != n_params || length(unique(all_indices)) != n_params) {
-      stop('ERROR: param_block_list must partition 1:n_params — each index must appear exactly once')
+      stop('ERROR: param_block_list must partition 1:n_params - each index must appear exactly once')
     }
     param_block_list = lapply(param_block_list, as.integer)
   }
