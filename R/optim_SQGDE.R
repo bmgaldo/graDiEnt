@@ -145,6 +145,14 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
   converge_test_passed=FALSE
   for(iter in 1:control_params$n_iter){
 
+    # block coordinate: cycle through blocks; NULL means use crossover
+    if (!is.null(control_params$param_block_list)) {
+      block_idx = ((iter - 1) %% length(control_params$param_block_list)) + 1
+      current_block = control_params$param_block_list[[block_idx]]
+    } else {
+      current_block = NULL
+    }
+
     if(control_params$parallel_type=='none'){
       # adapt particles using SQG DE sequentially
       temp=matrix(unlist(lapply(1:control_params$n_particles, SQG_DE_bin_1,
@@ -159,7 +167,8 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
                                 lower = control_params$lower,
                                 upper = control_params$upper,
                                 bounds_type = control_params$bounds_type,
-                                n_diff = control_params$n_diff, ...)),
+                                n_diff = control_params$n_diff,
+                                param_block = current_block, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)
     } else {
@@ -176,7 +185,8 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
                                              lower = control_params$lower,
                                              upper = control_params$upper,
                                              bounds_type = control_params$bounds_type,
-                                             n_diff = control_params$n_diff, ...)),
+                                             n_diff = control_params$n_diff,
+                                             param_block = current_block, ...)),
                   control_params$n_particles,
                   control_params$n_params+1, byrow=TRUE)
 

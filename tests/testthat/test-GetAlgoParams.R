@@ -5,7 +5,8 @@ ALL_NAMES <- c("n_params", "n_particles", "n_iter", "init_sd", "init_center",
                "crossover_rate", "jitter_size", "parallel_type", "recovery_path",
                "recovery_freq", "thin", "purify", "n_iters_per_particle",
                "return_trace", "n_diff", "adapt_scheme", "give_up_init",
-               "stop_tol", "stop_check", "converge_crit", "trace_print_freq")
+               "stop_tol", "stop_check", "converge_crit", "trace_print_freq",
+               "param_block_list")
 
 # ── output structure ──────────────────────────────────────────────────────────
 
