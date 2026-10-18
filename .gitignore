@@ -28,3 +28,4 @@ tests/testthat/_snaps/
 # local R session config (machine-specific)
 .Rprofile
 .Renviron
+.Rhistory
