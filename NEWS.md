@@ -17,6 +17,7 @@
 * Fixed `rand` scheme incorrectly sampling `2*n_diff` parents instead of `2*n_diff + 1`, causing out-of-bounds index access.
 * Fixed `runif` jitter applied over `n_params` elements instead of `length(param_indices)` when `crossover_rate < 1`.
 * Fixed `GetAlgoParams` validation for `n_params`, `n_particles`, and `n_iter`: finiteness is now checked before `as.integer()` coercion, preventing silent `NA` production and spurious "condition has length > 1" errors on vector inputs.
+* Fixed early stopping crashing (and computing a wrong `'percent'` metric) when `thin > 1`: the convergence-check window is now clamped to the iterations stored so far.
 
 # graDiEnt 1.0.1
 * Package uses "message()" instead of "print()" to communicate with user.

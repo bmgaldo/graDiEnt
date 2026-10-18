@@ -195,7 +195,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
     weights[iter_idx, ] = temp[, 1]
     particles[iter_idx, , ] = temp[, 2:(control_params$n_params+1)]
     # carry over particles for next iteration
-    if(iter<control_params$n_iter){
+    if(iter<control_params$n_iter && iter_idx<control_params$n_iters_per_particle){
       weights[iter_idx+1, ] = temp[, 1]
       particles[iter_idx+1, , ] = temp[, 2:(control_params$n_params+1)]
     }
@@ -227,7 +227,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
       weights[iter_idx, ] = temp[, 1]
       particles[iter_idx, , ] = temp[, 2:(control_params$n_params+1)]
       # carry over particles for next iteration
-      if(iter<control_params$n_iter){
+      if(iter<control_params$n_iter && iter_idx<control_params$n_iters_per_particle){
         weights[iter_idx+1, ] = temp[, 1]
         particles[iter_idx+1, , ] = temp[, 2:(control_params$n_params+1)]
       }
@@ -248,10 +248,10 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
     }
 
     if(iter %% control_params$stop_check==0){
-      # assign convergence method
+      idx_from = max(1, iter_idx - control_params$stop_check + 1)
 
       if(control_params$converge_crit=='percent'){
-        percent_improve=(1-stats::median(weights[iter_idx, ])/stats::median(weights[iter_idx-control_params$stop_check+1, ]))*100
+        percent_improve=(1-stats::median(weights[iter_idx, ])/stats::median(weights[idx_from, ]))*100
         if(percent_improve<(control_params$stop_tol)){
           message("Convergence criterion met. Stopping optimization early")
           converge_test_passed=TRUE
@@ -259,7 +259,7 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
         }
       }
       if(control_params$converge_crit=='stdev'){
-        weight_sd=stats::sd(weights[iter_idx:(iter_idx-control_params$stop_check+1), ])
+        weight_sd=stats::sd(weights[idx_from:iter_idx, ])
         if(weight_sd<(control_params$stop_tol)){
           message("Convergence criterion met. Stopping optimization early")
           converge_test_passed=TRUE
@@ -273,7 +273,8 @@ optim_SQGDE = function(ObjFun, control_params = GetAlgoParams(), warm_start = NU
     if(is.finite(control_params$trace_print_freq) && iter%%control_params$trace_print_freq==0){
       message(paste0('iter ', iter, '/', control_params$n_iter))
     }
-    if(iter%%control_params$thin==0 & !(iter==control_params$n_iter)){
+    if(iter%%control_params$thin==0 & !(iter==control_params$n_iter) &
+       iter_idx<control_params$n_iters_per_particle){
       iter_idx = iter_idx+1
     }
 

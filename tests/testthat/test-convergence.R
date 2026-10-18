@@ -240,3 +240,82 @@ test_that("FORK parallel execution returns valid solution", {
   expect_true(all(is.finite(out$solution)))
   expect_lt(max(abs(out$solution - analytic_mu)), 0.1)
 })
+
+# ── Early stopping with thin > 1 (regression: convergence window clamp) ─────
+
+test_that("stdev convergence does not crash with thin > 1", {
+  set.seed(42)
+  n  <- 200
+  x  <- rnorm(n)
+  y  <- 0.5 + 1.5 * x + rnorm(n, sd = 0.5)
+
+  ols_obj <- function(params, x, y) {
+    sum((y - params[1] - params[2] * x)^2)
+  }
+
+  set.seed(123)
+  out <- suppressMessages(
+    optim_SQGDE(
+      ObjFun = ols_obj,
+      control_params = GetAlgoParams(
+        n_params    = 2,
+        n_iter      = 60,
+        n_particles = 12,
+        n_diff      = 2,
+        init_center = 0,
+        init_sd     = 1,
+        thin        = 2,
+        return_trace = TRUE
+      ),
+      x = x,
+      y = y
+    )
+  )
+
+  expect_type(out, "list")
+  expect_named(out, c("solution", "weight", "last_particles", "last_weights",
+                      "particles_trace", "weights_trace", "converged"))
+  expect_length(out$solution, 2)
+  expect_true(all(is.finite(out$solution)))
+  expect_type(out$converged, "logical")
+  expect_equal(dim(out$particles_trace), c(30, 12, 2))
+})
+
+test_that("percent convergence does not crash with thin > 1", {
+  set.seed(42)
+  n  <- 200
+  x  <- rnorm(n)
+  y  <- 0.5 + 1.5 * x + rnorm(n, sd = 0.5)
+
+  ols_obj <- function(params, x, y) {
+    sum((y - params[1] - params[2] * x)^2)
+  }
+
+  set.seed(123)
+  out <- suppressMessages(
+    optim_SQGDE(
+      ObjFun = ols_obj,
+      control_params = GetAlgoParams(
+        n_params     = 2,
+        n_iter       = 60,
+        n_particles  = 12,
+        n_diff       = 2,
+        init_center  = 0,
+        init_sd      = 1,
+        thin         = 2,
+        converge_crit = 'percent',
+        return_trace  = TRUE
+      ),
+      x = x,
+      y = y
+    )
+  )
+
+  expect_type(out, "list")
+  expect_named(out, c("solution", "weight", "last_particles", "last_weights",
+                      "particles_trace", "weights_trace", "converged"))
+  expect_length(out$solution, 2)
+  expect_true(all(is.finite(out$solution)))
+  expect_type(out$converged, "logical")
+  expect_equal(dim(out$particles_trace), c(30, 12, 2))
+})
