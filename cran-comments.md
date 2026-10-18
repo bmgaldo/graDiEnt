@@ -1,43 +1,26 @@
-# Resubmission
-This is a resubmission. In this version I have:
+## Test environments
 
-* Replaced all "print()" function calls with "message()"
+* local: macOS arm64 (Apple Silicon), R-release 4.4.1 — 0 errors, 0 warnings, 0 notes
+* GitHub Actions: ubuntu-latest, R-release — 0 errors, 0 warnings, 0 notes
+* win-builder: r-devel, r-release, r-oldrel — PENDING
+* rhub (`check_for_cran`): PENDING
 
-* Reset user's "par()" after changing them in example code.
-  
 ## R CMD check results
-### Platform:	Ubuntu Linux 20.04.1 LTS, R-release, GCC
-There were no ERRORs or WARNINGs. There was one note.
-> Possibly misspelled words in DESCRIPTION:
-  > Baldanzini (10:157, 10:523)  
-  
-  last name of an author.
-  
-  > Pierini (10:173, 10:539)
-  
-  last name of an author.
-  
-  > SQG (10:101, 10:679)
-  
-  abbreviation for an algorithm.
-    
-  > Sala (10:151, 10:517) 
-  
-  last name of an author.
-    
-  > optim (10:17)
-  
-  name of a function in base R.
 
-### Platform:	Fedora Linux, R-devel, clang, gfortran
-There were no ERRORs or WARNINGs. There was one note.
-Same as above
+0 errors | 0 warnings | 1 note
 
-### Platform:	Windows Server 2022, R-devel, 64 bit
-There were no ERRORs or WARNINGs. There was two note.
-Same as above + 
-> * checking for detritus in the temp directory ... NOTE
-Found the following files/directories:
-  'lastMiKTeXException'
+The one NOTE lists possibly misspelled words in DESCRIPTION:
 
-The second note might be due to a bug/crash in MiKTeX, as is noted in R-hub issue #503, which can be found at https://github.com/r-hub/rhub/issues/503.
+* Baldanzini, Sala, Pierini — last names of authors of the cited paper (Sala, Baldanzini, and Pierini 2018, doi:10.1007/978-3-319-72926-8_27)
+* SQG — abbreviation for the algorithm name (Stochastic Quasi-Gradient)
+* optim — name of a function in base R whose interface convention this package follows
+
+These words are spelled correctly or are proper nouns.
+
+## Changes since last CRAN release (1.0.1, 2022-05-10)
+
+This is a major feature update to 1.1.0:
+
+* New: box constraints (`lower`/`upper` with `reflect` or `clip` enforcement), warm start, disk recovery (`recovery_path`/`recovery_freq`), progress message control (`trace_print_freq`), unified DE adaptation schemes (`adapt_scheme`), block coordinate updating (`param_block_list`), `crossover_rate = 0` and `jitter_size = 0` support.
+* Fixed: several bugs in gradient approximation, parent sampling, jitter dimensions, parameter validation, and convergence checks with `thin > 1` (see NEWS.md for the full list).
+* Test suite expanded from 4 tests to 228 tests covering all exported and internal functions.
